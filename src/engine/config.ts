@@ -10,6 +10,19 @@ import type { StrategyId } from './strategies';
 
 export type VenueId = string;
 
+export interface VenueExits {
+  /** Overrides the global take-profit, e.g. 1.0 = +100%. */
+  takeProfitPct?: number;
+  /** Overrides the global stop-loss. */
+  stopLossPct?: number;
+  /** Bars a trade may stay open (default: pricePathSteps). */
+  holdBars?: number;
+  /** true = ignore the chart technique's sell signal and only exit on TP, SL or the end of the window. */
+  ignoreSignalExits?: boolean;
+  /** Short label for the UI. */
+  label?: string;
+}
+
 export interface VenueConfig {
   id: VenueId;
   name: string;
@@ -20,6 +33,8 @@ export interface VenueConfig {
   startShare: number;
   /** Short descriptor shown under the venue name. */
   tagline: string;
+  /** Optional exit plan that replaces the global one for this venue's agents. */
+  exits?: VenueExits;
   /** Each agent reads the chart with one technique (see strategies.ts). */
   agents: { name: string; color: string; strategy: StrategyId }[];
 }
@@ -70,7 +85,9 @@ export const DEFAULT_CONFIG: SimConfig = {
   startingBalance: 98,
   venues: [
     {
-      id: 'launchpad', name: 'Launchpad', icon: '🚀', accent: 'lime', startShare: 1, tagline: 'sim · new-token launches',
+      id: 'launchpad', name: 'Launchpad', icon: '🚀', accent: 'lime', startShare: 1, tagline: 'sim · graduating coins',
+      // Graduation hunters: hold longer and aim for +100% instead of +15%.
+      exits: { takeProfitPct: 1.0, holdBars: 120, ignoreSignalExits: true, label: 'hold for +100%' },
       agents: [{ name: 'Scout', color: '#e8d44d', strategy: 'breakout' }, { name: 'Pairs', color: '#3ddc84', strategy: 'trend' }, { name: 'Exec', color: '#c6f135', strategy: 'dip' }],
     },
     {

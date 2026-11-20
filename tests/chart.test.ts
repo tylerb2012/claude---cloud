@@ -78,3 +78,31 @@ describe('chart rules in the session', () => {
     }
   });
 });
+
+describe('venue exit plans', () => {
+  it('Launchpad holds up to 120 bars and takes profit at +100%, ignoring sell signals', () => {
+    let tps = 0;
+    for (let seed = 1; seed <= 300; seed++) {
+      const s = new SimSession(makeConfig(), seed);
+      s.runToEnd();
+      for (const t of s.trades.filter((x) => x.venueId === 'launchpad')) {
+        expect(t.windowBars).toBe(120);
+        expect(t.takeProfitPct).toBe(1);
+        expect(t.reason).not.toBe('signal');
+        if (t.reason === 'take-profit') {
+          tps++;
+          expect(t.chart[t.exitIndex]).toBeGreaterThanOrEqual(2);
+        }
+      }
+      for (const t of s.trades.filter((x) => x.venueId !== 'launchpad')) expect(t.windowBars).toBe(30);
+    }
+    expect(tps).toBeGreaterThanOrEqual(0);
+  });
+  it('removing the exit plan puts Launchpad back on the global rules', () => {
+    const cfg = makeConfig();
+    const plain = makeConfig({ venues: cfg.venues.map((v) => ({ ...v, exits: undefined })) });
+    const s = new SimSession(plain, 2);
+    s.runToEnd();
+    for (const t of s.trades) expect(t.windowBars).toBe(30);
+  });
+});

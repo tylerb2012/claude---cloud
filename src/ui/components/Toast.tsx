@@ -12,7 +12,7 @@ export function Toast({ trade, venue }: { trade: Trade; venue: VenueConfig }) {
         <strong>
           {venue.name} · {VERB[trade.reason]} ${trade.ticker} <span className={tone(trade.pnl)}>{signedUsd(trade.pnl)}</span>
         </strong>
-        <span className="muted tiny">{trade.agent.toUpperCase()} · exit at step {trade.exitStep} of 30 · <span className="sim-text">simulated</span></span>
+        <span className="muted tiny">{trade.agent.toUpperCase()} · exit at bar {trade.exitStep} of {trade.windowBars} · <span className="sim-text">simulated</span></span>
       </div>
       <Coin ticker={trade.ticker} />
     </div>

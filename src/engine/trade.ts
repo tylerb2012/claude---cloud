@@ -13,8 +13,7 @@ export interface PricePath {
 }
 
 /** Generates a price path relative to an entry price of 1. Uses only the rng, never the exit rules. */
-export function generatePricePath(cfg: SimConfig, rng: Rng): PricePath {
-  const steps = cfg.pricePathSteps;
+export function generatePricePath(cfg: SimConfig, rng: Rng, steps = cfg.pricePathSteps): PricePath {
   const rugged = rng.next() < cfg.rugChance;
   const rugStep = rugged ? 1 + rng.int(steps) : null;
   const rugLoss = rugged ? rng.range(cfg.rugLossMin, cfg.rugLossMax) : 0;

@@ -87,7 +87,12 @@ export function TradeChart({ trade: t, venue, onClose }: Props) {
           <dt>Why it sold</dt>
           <dd>{t.exitWhy} · {signedPct(t.pnlPct)} after fees</dd>
           <dt>{strat.label} rules</dt>
-          <dd>{strat.entryRule} {strat.exitRule}</dd>
+          <dd>
+            {strat.entryRule}{' '}
+            {venue.exits?.ignoreSignalExits
+              ? `${venue.name} holds instead of using the sell signal: it exits only at take-profit +${Math.round(t.takeProfitPct * 100)}%, the stop-loss, or after ${t.windowBars} bars.`
+              : strat.exitRule}
+          </dd>
         </dl>
         <p className="tiny muted">
           Simulated chart: these prices are a random walk, so the pattern before entry can't predict what came after. On real

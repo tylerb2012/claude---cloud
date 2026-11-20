@@ -368,3 +368,5 @@ li > .tape-row:focus-visible { outline: 2px solid var(--venue-blue); outline-off
 .why { margin: 12px 0; display: grid; gap: 2px; font-size: 13px; }
 .why dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 6px; }
 .why dd { margin: 0; }
+
+.exit-plan { color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

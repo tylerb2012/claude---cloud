@@ -25,6 +25,11 @@ export function VenueCard({ venue, state, lastTrade, agentLastTrade, latestTrade
         <div className="venue-title">
           <span className="venue-name">{venue.name}</span>
           <span className="mono tiny muted">⌁ {venue.tagline}</span>
+          {venue.exits?.label && (
+            <span className="exit-plan mono tiny" title={`Take-profit ${Math.round((venue.exits.takeProfitPct ?? 0) * 100)}%, hold up to ${venue.exits.holdBars} bars${venue.exits.ignoreSignalExits ? ', no early sell signals' : ''}`}>
+              {venue.exits.label} · up to {venue.exits.holdBars} bars
+            </span>
+          )}
         </div>
         <div className="venue-money">
           <span className="venue-balance mono">{usd(state.balance)}</span>

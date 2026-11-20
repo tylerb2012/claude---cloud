@@ -17,6 +17,10 @@ export interface Trade {
   pnlPct: number;
   reason: ExitReason;
   exitStep: number;
+  /** Bars the trade was allowed to stay open. */
+  windowBars: number;
+  /** Take-profit level that applied to this trade. */
+  takeProfitPct: number;
   strategy: StrategyId;
   entryWhy: string;
   exitWhy: string;
@@ -169,8 +173,12 @@ export class SimSession {
   private execute(s: Scheduled): Trade | null {
     const cfg = this.cfg;
     const venue = this.venues[s.venueIndex];
+    const exits = cfg.venues[s.venueIndex].exits ?? {};
+    const windowBars = exits.holdBars ?? cfg.pricePathSteps;
+    const takeProfitPct = exits.takeProfitPct ?? cfg.takeProfitPct;
+    const stopLossPct = exits.stopLossPct ?? cfg.stopLossPct;
     // Draw everything from the rng first so the sequence doesn't depend on balances or rules.
-    const path = generatePricePath(cfg, this.rng);
+    const path = generatePricePath(cfg, this.rng, windowBars);
     const agentIndex = this.rng.int(venue.agents.length);
     const ticker = Array.from({ length: 3 + this.rng.int(2) }, () => LETTERS[this.rng.int(LETTERS.length)]).join('');
 
@@ -193,8 +201,8 @@ export class SimSession {
     }
     const exit = findExit(
       path,
-      { ...this.rules, takeProfitPct: cfg.takeProfitPct, stopLossPct: cfg.stopLossPct },
-      (step) => strategy.exit(ind, e + step, e),
+      { ...this.rules, takeProfitPct, stopLossPct },
+      exits.ignoreSignalExits ? undefined : (step) => strategy.exit(ind, e + step, e),
     );
     const st = settle(stake, exit.exitPrice, cfg.feeRate);
     venue.balance = Math.max(0, venue.balance + st.pnl);
@@ -212,6 +220,8 @@ export class SimSession {
       pnlPct: st.pnl / stake,
       reason: exit.reason,
       exitStep: exit.exitStep,
+      windowBars,
+      takeProfitPct,
       strategy: strategy.id,
       entryWhy: entry.why,
       exitWhy: exit.why,

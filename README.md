@@ -75,6 +75,25 @@ Each agent reads the chart with one standard technique before it buys, and keeps
 - The indicators are in `src/engine/indicators.ts`, and the strategies in `src/engine/strategies.ts`. Tests check that no indicator ever uses future bars.
 - `npm run batch` prints each technique's results per trade next to buying blind.
 
+### Graduation hunters (Launchpad)
+
+The Launchpad agents hunt graduating coins, so they use their own exit plan (`exits` on the venue in `config.ts`):
+
+- take-profit at **+100%** instead of +15%
+- trades stay open up to **120 bars** instead of 30
+- no chart sell signals: they exit only at the take-profit, the stop-loss, or the end of the window
+
+A 2,000-day comparison of Launchpad trades:
+
+| Exit plan | Hit +100% | Stopped out | Rugged | Avg per trade | Launchpad end of day (start $32.67) |
+|---|---|---|---|---|---|
+| Old: TP +15%, 30 bars | (TP +15%: 18.8%) | 34.1% | 2.6% | −4.5% | $32.42 |
+| **New: TP +100%, 120 bars, SL −7%** | **1.6%** | 80.9% | 2.6% | −4.9% | $32.41 |
+| New with SL −25% | 2.0% | 38.9% | 6.3% | −8.2% | $32.23 |
+| New with no stop-loss | 2.0% | 0% | 8.2% | −9.4% | $32.17 |
+
+About 1 trade in 60 reaches +100%. Most get stopped out first. Wider stops let trades run longer, but then more of them are still open when a rug hits, so they lose more. The −7% stop is the least bad, so it stays.
+
 **Why they can't win here:** the simulator's prices are a random walk, so a chart pattern says nothing about the next bar. These techniques only matter on real price charts, which is what v2 (paper trading on live prices) is for. On real data the batch comparison becomes a real test for an edge.
 
 ## Project layout
