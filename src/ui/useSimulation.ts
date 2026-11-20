@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { DEFAULT_CONFIG, randomSeed, SimSession, type RuleState, type Trade } from '../engine';
+import { DEFAULT_CONFIG, randomSeed, SimSession, type RuleState, type SimConfig, type Trade } from '../engine';
 
 /** Trades at least this big (as % of stake) pop a toast. */
 const TOAST_MIN_PCT = 0.1;
@@ -39,8 +39,7 @@ function fixedSeed(): number | null {
   return DEFAULT_CONFIG.seed;
 }
 
-export function useSimulation() {
-  const cfg = DEFAULT_CONFIG;
+export function useSimulation(cfg: SimConfig = DEFAULT_CONFIG) {
   const [rules, setRules] = useState<RuleState>({
     takeProfitEnabled: cfg.takeProfitEnabled,
     stopLossEnabled: cfg.stopLossEnabled,
@@ -55,6 +54,20 @@ export function useSimulation() {
   const [toast, setToast] = useState<Trade | null>(null);
   const toastAtRef = useRef(0);
   const [recapOpen, setRecapOpen] = useState(false);
+  const rulesRef = useRef(rules);
+  rulesRef.current = rules;
+
+  // a new config (e.g. a different bot strategy) starts a fresh session
+  const firstCfg = useRef(cfg);
+  useEffect(() => {
+    if (firstCfg.current === cfg) return;
+    firstCfg.current = cfg;
+    setRunning(false);
+    setRecapOpen(false);
+    countedRef.current = false;
+    sessionRef.current = new SimSession(cfg, fixedSeed() ?? randomSeed(), rulesRef.current);
+    rerender();
+  }, [cfg]);
 
   useEffect(() => {
     if (!toast) return;

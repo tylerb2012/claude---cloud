@@ -155,3 +155,14 @@ The UI follows the reference layout you shared: a compact header with a clock, t
 - **Agent percentages are each agent's simulated win rate**, not a confidence score. The bar under each agent shows the same number.
 - **The chart scales every line to its own start**, so 1× (dashed) is break-even for the total (bold) and for each venue (thin, colored).
 - **The tape shows closed trades with how they exited** (TP / SL / RUG / END), not separate BUY rows, because the engine records each trade once, when it closes.
+
+## Paper mini app
+
+`mini.html` (`npm run dev`, then open `/mini.html`) is a phone-first, four-tab version built for fun. It runs on play money only:
+
+- **Discover:** a simulated memecoin market. Prices tick every 1.2 seconds as a fair random walk with rug pulls. Tokens with more red flags (mint not revoked, top wallets holding too much, unlocked liquidity…) rug more often. Tap a token for its chart, stats and red flags, then paper-buy $5, $10, $25 or Max.
+- **Bot:** pick a strategy (Momentum, Breakout, Dip buyer, Runner, New pairs) and a risk level (Conservative 3% / Balanced 6% / Aggressive 12% per trade), then run the venue simulator. Changing either starts a fresh session.
+- **Wallet:** paper cash and holdings, with live value and P&L. Rugged holdings shake. You can sell everything, top up with $100 of play money, or reset.
+- **Profile:** streak, stats and badges (first profit, survived a rug, +100% club…), plus a short guide to spotting scam trading bots.
+
+It has no wallet connection, no deposit addresses, no keys and no invites. Tests check that every strategy and risk combination still loses money on average (`tests/mini.test.ts`). `npm run build:paper` builds it as one shareable page.

@@ -9,7 +9,7 @@ export default defineConfig({
     outDir: 'dist-paper',
     cssCodeSplit: false,
     rollupOptions: {
-      input: 'src/paper-main.tsx',
+      input: 'src/mini-main.tsx',
       external: ['react', 'react-dom', 'react-dom/client'],
       output: {
         format: 'iife',
