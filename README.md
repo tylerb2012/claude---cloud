@@ -72,13 +72,35 @@ tests/            vitest tests: P&L, fees, TP/SL, rugs, non-negative balance, de
 
 ## Simulated vs. real
 
-| | v1 Simulation (built) | v2 Paper + live prices | v3 Read-only live data |
+| | v1 Simulation (built) | v2 Paper + live prices | v3 Read-only live data (built, Solana/Phantom) |
 |---|---|---|---|
 | Prices | random, generated locally | public market API | n/a |
 | Trades | simulated | simulated on real prices | your real history |
 | Balances | simulated | simulated | your real accounts |
 | Orders placed | never | never | never |
 | Badge | Simulation | Paper, live prices | Live data |
+
+## Live data mode (read-only wallet)
+
+The switch at the bottom of the screen moves between **Simulation** and **Live data**. The simulation keeps its state while you're on the other screen.
+
+**Live data** shows your real Solana wallet:
+
+- **Connect Phantom.** In a browser that has the Phantom extension, or inside the Phantom app's own browser (on a phone, the "Open in the Phantom app" button reopens the page there). Connecting gives the app your **public address only**.
+- **Or watch an address.** Paste any public Solana address. No wallet needed.
+- **What it shows.** SOL and token balances, a dollar total and the last 10 transactions, linked to Solscan. It refreshes every 60 seconds.
+- **Where the numbers come from.** Balances come from a Solana RPC node (`VITE_SOLANA_RPC_URL`, default: the public mainnet endpoint, which is rate-limited). Prices for SOL, USDC and USDT come from CoinGecko.
+- **The total never overstates.** Tokens without a price are listed but left out of the dollar total, and the screen says so. If prices fail to load, no dollar total is shown at all.
+
+**Add funds** never touches money. It explains how to buy with Apple Pay inside the Phantom app (Phantom's licensed partners handle payment and identity checks), and shows your address for sending from an exchange. If you sign up with an on-ramp provider, set `VITE_ONRAMP_URL_TEMPLATE` (with `{address}`) and a "Continue to …" button appears.
+
+**Guarantees:**
+
+- The app never calls any signing or sending method. `tests/live.test.ts` scans every source file and fails if one appears.
+- The bots only ever trade in Simulation.
+- The connected address is saved in your browser so it reconnects next time. Disconnect clears it.
+
+> I couldn't reach Solana or CoinGecko from the build environment (its network policy blocks them), so the live-data code is tested against the documented response formats with mocked network calls. Try it with your own address on your phone and tell me if anything looks off.
 
 ## Secrets
 
