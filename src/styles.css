@@ -337,3 +337,34 @@ main { display: flex; flex-direction: column; gap: 10px; }
 .fund-option p { margin: 0; }
 .addr-full { word-break: break-all; }
 @media (prefers-reduced-motion: reduce) { .mode-thumb { transition: none; } }
+
+/* Trade chart sheet */
+.agent-tech { color: var(--agent); opacity: 0.9; font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+li > .tape-row { width: 100%; background: none; border: 0; border-radius: 8px; cursor: pointer; text-align: left; color: inherit; }
+li > .tape-row:hover { background: var(--surface-2); }
+li > .tape-row:focus-visible { outline: 2px solid var(--venue-blue); outline-offset: 0; }
+.trade-chart { width: 100%; height: auto; display: block; margin: 12px 0 6px; }
+.trade-chart .grid { stroke: var(--border); stroke-width: 1; }
+.trade-chart .axis { fill: var(--muted); font: 9px var(--mono); }
+.trade-chart .hold-zone { fill: var(--surface-2); }
+.trade-chart .price { fill: none; stroke: var(--text); stroke-width: 1.6; stroke-linejoin: round; }
+.trade-chart .ind { fill: none; stroke-width: 1.2; }
+.trade-chart .ind-fast { stroke: var(--venue-lime); }
+.trade-chart .ind-slow { stroke: var(--venue-blue); }
+.trade-chart .ind-range { stroke: var(--muted); stroke-dasharray: 3 3; }
+.trade-chart .ind-rsi { stroke: var(--sim); }
+.trade-chart .rsi-box { fill: none; stroke: var(--border); }
+.trade-chart .mark-in { fill: var(--venue-blue); stroke: var(--surface); stroke-width: 1.5; }
+.trade-chart .mark-out { stroke: var(--surface); stroke-width: 1.5; fill: var(--muted); }
+.trade-chart .mark-out.up { fill: var(--up); }
+.trade-chart .mark-out.down { fill: var(--down); }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); }
+.lg { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 5px; vertical-align: 2px; }
+.price-lg { background: var(--text); }
+.fast-lg { background: var(--venue-lime); }
+.slow-lg { background: var(--venue-blue); }
+.range-lg { background: var(--muted); }
+.zone-lg { background: var(--surface-2); border: 1px solid var(--border); height: 8px; vertical-align: -1px; }
+.why { margin: 12px 0; display: grid; gap: 2px; font-size: 13px; }
+.why dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 6px; }
+.why dd { margin: 0; }

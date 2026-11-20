@@ -1,8 +1,8 @@
-import type { Trade, VenueConfig, VenueState } from '../../engine';
+import { STRATEGIES, type Trade, type VenueConfig, type VenueState } from '../../engine';
 import { signedUsd, signedUsdShort, simClock, tone, usd } from '../format';
 import { Coin } from './Coin';
 
-const REASON_VERB: Record<Trade['reason'], string> = { 'take-profit': 'TP', 'stop-loss': 'SL', rug: 'rugged', time: 'closed' };
+const REASON_VERB: Record<Trade['reason'], string> = { 'take-profit': 'TP', 'stop-loss': 'SL', rug: 'rugged', signal: 'sig', time: 'closed' };
 
 interface Props {
   venue: VenueConfig;
@@ -11,9 +11,10 @@ interface Props {
   agentLastTrade: (Trade | undefined)[];
   /** id of the most recent trade across all venues, to light up the active card */
   latestTradeId: number | null;
+  chartRules: boolean;
 }
 
-export function VenueCard({ venue, state, lastTrade, agentLastTrade, latestTradeId }: Props) {
+export function VenueCard({ venue, state, lastTrade, agentLastTrade, latestTradeId, chartRules }: Props) {
   const pnl = state.balance - state.startBalance;
   const live = lastTrade !== undefined && lastTrade.id === latestTradeId;
   return (
@@ -27,7 +28,7 @@ export function VenueCard({ venue, state, lastTrade, agentLastTrade, latestTrade
         </div>
         <div className="venue-money">
           <span className="venue-balance mono">{usd(state.balance)}</span>
-          <span className="mono tiny"><span className={tone(pnl)}>{signedUsdShort(pnl)}</span><span className="muted"> · {state.trades} tr</span></span>
+          <span className="mono tiny"><span className={tone(pnl)}>{signedUsdShort(pnl)}</span><span className="muted"> · {state.trades} tr{state.passed ? ` · ${state.passed} passed` : ''}</span></span>
         </div>
       </header>
 
@@ -45,8 +46,11 @@ export function VenueCard({ venue, state, lastTrade, agentLastTrade, latestTrade
                   {a.trades ? `${Math.round(winRate * 100)}%` : '—'}
                 </span>
               </div>
+              <span className="agent-tech mono tiny" title={STRATEGIES[a.strategy].entryRule}>
+                {chartRules ? STRATEGIES[a.strategy].label : 'no chart'}
+              </span>
               <span className="agent-act mono tiny muted">
-                {t ? `${REASON_VERB[t.reason]} $${t.ticker}` : 'waiting'}
+                {t ? `${REASON_VERB[t.reason]} $${t.ticker}` : a.passed ? `passed ${a.passed}×` : 'waiting'}
               </span>
               <span className="agent-bar"><span style={{ width: `${winRate * 100}%` }} /></span>
             </li>

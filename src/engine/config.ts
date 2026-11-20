@@ -6,6 +6,8 @@
  * should be checked against paper-bot-simulator-spec.md.
  */
 
+import type { StrategyId } from './strategies';
+
 export type VenueId = string;
 
 export interface VenueConfig {
@@ -18,7 +20,8 @@ export interface VenueConfig {
   startShare: number;
   /** Short descriptor shown under the venue name. */
   tagline: string;
-  agents: { name: string; color: string }[];
+  /** Each agent reads the chart with one technique (see strategies.ts). */
+  agents: { name: string; color: string; strategy: StrategyId }[];
 }
 
 export interface SimConfig {
@@ -37,6 +40,10 @@ export interface SimConfig {
   rugLossMax: number;
   /** Number of price steps in each trade's path. */
   pricePathSteps: number;
+  /** Bars of chart history the agents can read before deciding to enter. */
+  chartHistoryBars: number;
+  /** true = agents only enter when their chart technique signals; false = enter every slot blindly. */
+  chartRulesEnabled: boolean;
   /** ASSUMPTION: per-step log-return standard deviation. */
   stepVolatility: number;
   /** ASSUMPTION: per-step expected return. 0 = fair random walk (no edge). */
@@ -64,15 +71,15 @@ export const DEFAULT_CONFIG: SimConfig = {
   venues: [
     {
       id: 'launchpad', name: 'Launchpad', icon: '🚀', accent: 'lime', startShare: 1, tagline: 'sim · new-token launches',
-      agents: [{ name: 'Scout', color: '#e8d44d' }, { name: 'Pairs', color: '#3ddc84' }, { name: 'Exec', color: '#c6f135' }],
+      agents: [{ name: 'Scout', color: '#e8d44d', strategy: 'breakout' }, { name: 'Pairs', color: '#3ddc84', strategy: 'trend' }, { name: 'Exec', color: '#c6f135', strategy: 'dip' }],
     },
     {
       id: 'dex', name: 'DEX', icon: '🔁', accent: 'green', startShare: 1, tagline: 'sim · on-chain swaps',
-      agents: [{ name: 'Sniper', color: '#ff9f43' }, { name: 'Curve', color: '#a78bfa' }, { name: 'Exit', color: '#f472b6' }],
+      agents: [{ name: 'Sniper', color: '#ff9f43', strategy: 'breakout' }, { name: 'Curve', color: '#a78bfa', strategy: 'trend' }, { name: 'Exit', color: '#f472b6', strategy: 'dip' }],
     },
     {
       id: 'cex', name: 'CEX', icon: '🏦', accent: 'blue', startShare: 1, tagline: 'sim · order-book spot',
-      agents: [{ name: 'Smarts', color: '#38bdf8' }, { name: 'Trend', color: '#4c9dff' }, { name: 'Router', color: '#60a5fa' }],
+      agents: [{ name: 'Smarts', color: '#38bdf8', strategy: 'breakout' }, { name: 'Trend', color: '#4c9dff', strategy: 'trend' }, { name: 'Router', color: '#60a5fa', strategy: 'dip' }],
     },
   ],
   tradesPerVenuePerSession: 40,
@@ -81,6 +88,8 @@ export const DEFAULT_CONFIG: SimConfig = {
   rugLossMin: 0.85,
   rugLossMax: 0.99,
   pricePathSteps: 30,
+  chartHistoryBars: 40,
+  chartRulesEnabled: true,
   stepVolatility: 0.03,
   stepDrift: 0,
   feeRate: 0.01,

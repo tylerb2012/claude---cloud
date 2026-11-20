@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createRng, findExit, generatePricePath, makeConfig, settle, SimSession, type PricePath } from '../src/engine';
 
 const rules = { takeProfitEnabled: true, stopLossEnabled: true, takeProfitPct: 0.15, stopLossPct: 0.07 };
-const path = (prices: number[], rugStep: number | null = null): PricePath => ({ prices: [1, ...prices], rugStep });
+const path = (prices: number[], rugStep: number | null = null): PricePath => ({ history: [1], prices: [1, ...prices], rugStep });
 
 describe('settle: P&L and fees', () => {
   it('charges the fee on entry and exit', () => {
@@ -83,11 +83,14 @@ describe('SimSession', () => {
       for (const h of s.history) expect(h.total).toBeGreaterThanOrEqual(0);
     }
   });
-  it('runs the configured number of trades per venue', () => {
-    const s = new SimSession(makeConfig(), 7);
-    s.runToEnd();
-    expect(s.done).toBe(true);
-    for (const v of s.venues) expect(v.trades).toBe(40);
+  it('fills every scheduled slot per venue: a trade, or a pass when the chart gives no signal', () => {
+    const blind = new SimSession(makeConfig({ chartRulesEnabled: false }), 7);
+    blind.runToEnd();
+    for (const v of blind.venues) expect(v.trades).toBe(40);
+    const chart = new SimSession(makeConfig(), 7);
+    chart.runToEnd();
+    expect(chart.done).toBe(true);
+    for (const v of chart.venues) expect(v.trades + v.passed).toBe(40);
   });
   it('balances reconcile: start + sum of trade P&L = final total', () => {
     const s = new SimSession(makeConfig(), 9);

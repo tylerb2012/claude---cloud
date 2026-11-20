@@ -44,6 +44,7 @@ export function useSimulation() {
   const [rules, setRules] = useState<RuleState>({
     takeProfitEnabled: cfg.takeProfitEnabled,
     stopLossEnabled: cfg.stopLossEnabled,
+    chartRules: cfg.chartRulesEnabled,
   });
   const sessionRef = useRef<SimSession>(new SimSession(cfg, fixedSeed() ?? randomSeed(), rules));
   const [running, setRunning] = useState(false);

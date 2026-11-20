@@ -2,7 +2,7 @@ import type { Trade, VenueConfig } from '../../engine';
 import { signedUsd, tone } from '../format';
 import { Coin } from './Coin';
 
-const VERB: Record<Trade['reason'], string> = { 'take-profit': 'took profit on', 'stop-loss': 'stopped out of', rug: 'got rugged on', time: 'closed' };
+const VERB: Record<Trade['reason'], string> = { 'take-profit': 'took profit on', 'stop-loss': 'stopped out of', rug: 'got rugged on', signal: 'sold on signal', time: 'closed' };
 
 export function Toast({ trade, venue }: { trade: Trade; venue: VenueConfig }) {
   return (

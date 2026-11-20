@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { Trade } from '../engine';
+import { TradeChart } from './components/TradeChart';
 import { Chart } from './components/Chart';
 import { Recap } from './components/Recap';
 import { Toast } from './components/Toast';
@@ -9,6 +11,7 @@ import type { useSimulation } from './useSimulation';
 
 export function SimView({ sim }: { sim: ReturnType<typeof useSimulation> }) {
   const { cfg, session: s } = sim;
+  const [chartTrade, setChartTrade] = useState<Trade | null>(null);
   const total = s.total;
   const pnl = total - s.startingBalance;
   const trades = s.tradeCount;
@@ -87,16 +90,18 @@ export function SimView({ sim }: { sim: ReturnType<typeof useSimulation> }) {
               onClick={() => sim.toggleRule('takeProfitEnabled')}>TP +{Math.round(cfg.takeProfitPct * 100)}%</button>
             <button className={`rule mono ${sim.rules.stopLossEnabled ? 'on' : ''}`} aria-pressed={sim.rules.stopLossEnabled}
               onClick={() => sim.toggleRule('stopLossEnabled')}>SL −{Math.round(cfg.stopLossPct * 100)}%</button>
+            <button className={`rule mono ${sim.rules.chartRules ? 'on' : ''}`} aria-pressed={sim.rules.chartRules}
+              onClick={() => sim.toggleRule('chartRules')} title="Agents only buy when their chart technique signals">Chart rules</button>
             {s.done && !sim.recapOpen && <button className="rule mono on" onClick={sim.openRecap}>Recap</button>}
           </div>
         </section>
 
         {cfg.venues.map((v, i) => (
           <VenueCard key={v.id} venue={v} state={s.venues[i]} lastTrade={lastByVenue.get(v.id)}
-            agentLastTrade={v.agents.map((_, ai) => lastByAgent.get(`${v.id}:${ai}`))} latestTradeId={latest?.id ?? null} />
+            agentLastTrade={v.agents.map((_, ai) => lastByAgent.get(`${v.id}:${ai}`))} latestTradeId={latest?.id ?? null} chartRules={sim.rules.chartRules} />
         ))}
 
-        <TradeTape trades={s.trades.slice(-cfg.tapeLength).reverse()} venues={cfg.venues} total={trades} agentCount={agentCount} />
+        <TradeTape trades={s.trades.slice(-cfg.tapeLength).reverse()} venues={cfg.venues} total={trades} agentCount={agentCount} onOpen={setChartTrade} />
       </main>
 
       <footer className="foot tiny muted">
@@ -105,10 +110,14 @@ export function SimView({ sim }: { sim: ReturnType<typeof useSimulation> }) {
           prices are used and no orders are placed. Prices are random paths generated in your browser: a fair random walk
           with an {Math.round(cfg.rugChance * 100)}% chance per trade of a rug pull, minus a {cfg.feeRate * 100}% fee on
           each buy and each sale. With these rules the expected result is a loss. Agent percentages are each agent's
-          simulated win rate, not a confidence score.
+          simulated win rate, not a confidence score. Chart techniques can't predict random prices: in this simulator they only change how often the agents trade.
         </p>
         <p className="mono">seed {s.seed} · add ?seed={s.seed} to the URL to replay</p>
       </footer>
+
+      {chartTrade && (
+        <TradeChart trade={chartTrade} venue={cfg.venues.find((v) => v.id === chartTrade.venueId)!} onClose={() => setChartTrade(null)} />
+      )}
 
       {sim.recapOpen && s.done && (
         <Recap session={s} venues={cfg.venues} stats={sim.stats} onAgain={sim.again} onClose={sim.closeRecap} onClearStats={sim.clearStats} />

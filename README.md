@@ -54,8 +54,28 @@ These are true of the model, not bugs, but they're easy to misread:
 
 1. **The stop-loss does not cap losses at −7%.** Stop-loss trades on the tape usually show −9% to −12%. Prices move in discrete steps, so the fill lands past the threshold, and about 2% of fees come on top. Rugs that gap through the stop lose 85% or more.
 2. **Take-profit wins show about +13% to +16%, not +15%**, for the same reasons in the other direction.
-3. **The default settings lose money.** A sample batch run (2,000 sessions): average final balance **$86.06 (−12.2%)**, 99.95% of sessions end below $98, trade win rate 33%. About $4.32 of each session's loss is fees. The rest is rugs and stop-loss slippage. A win rate near 33% with only small wins is what this rule set produces.
-4. A session can look profitable mid-day. Single sessions are noisy, so use `npm run batch` to judge the rules.
+3. **The default settings lose money.** A 1,000-day batch run with chart rules on (the default): average final balance **$97.29 (−0.7%)**, 78% of days end below $98, trade win rate 31%, about 8 trades a day. With chart rules off (buying every slot, 120 trades a day): average **$85.97 (−12.3%)** and almost every day ends below $98.
+4. **Chart rules lose less only because they trade less.** Every technique loses money on every trade. The RSI dip loses the least per trade because it holds for the shortest time (about 7 bars against 14), so fewer of its trades are still open when a rug hits. Leave out rugged trades and every technique, including buying blind, loses about the 2% round-trip fee.
+5. A day can look profitable halfway through. Single days are noisy, so use `npm run batch` to judge the rules.
+
+## Chart techniques
+
+Each agent reads the chart with one standard technique before it buys, and keeps watching it to decide when to sell. The agent sees 40 bars of history before each possible entry.
+
+| Technique | Agents | Buys when | Sells when |
+|---|---|---|---|
+| Breakout | Scout, Sniper, Smarts | price closes above the highest close of the last 20 bars (breaks resistance) | price closes below the lowest close of the last 10 bars (trailing support) |
+| EMA cross | Pairs, Curve, Trend | the 9-bar EMA crossed above the 21-bar EMA in the last 3 bars and price is above the 21 EMA | the 9 EMA falls back below the 21 EMA |
+| RSI dip | Exec, Exit, Router | RSI(14) is under 35 (oversold) and the last bar closed up | RSI climbs above 55, or price gets back to the 20-bar average |
+
+- Take-profit and stop-loss still apply on top, as hard limits.
+- With chart rules on, an agent stays out when its technique gives no signal. The venue card counts these as "passed". Each slot is now a look at the chart, so a day has about 8 trades instead of 120. To get more trades, raise `tradesPerVenuePerSession` in `config.ts`.
+- The **Chart rules** chip switches every agent to buying blind, so you can compare.
+- **Tap any trade on the tape** to see the chart the agent read: price, the indicators its technique uses, the entry and exit points, RSI underneath, and plain-language reasons for the buy and the sell.
+- The indicators are in `src/engine/indicators.ts`, and the strategies in `src/engine/strategies.ts`. Tests check that no indicator ever uses future bars.
+- `npm run batch` prints each technique's results per trade next to buying blind.
+
+**Why they can't win here:** the simulator's prices are a random walk, so a chart pattern says nothing about the next bar. These techniques only matter on real price charts, which is what v2 (paper trading on live prices) is for. On real data the batch comparison becomes a real test for an edge.
 
 ## Project layout
 

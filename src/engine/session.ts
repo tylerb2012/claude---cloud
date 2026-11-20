@@ -1,5 +1,7 @@
 import type { SimConfig, VenueId } from './config';
 import { createRng, type Rng } from './rng';
+import { computeIndicators } from './indicators';
+import { STRATEGIES, type StrategyId } from './strategies';
 import { findExit, generatePricePath, settle, type ExitReason } from './trade';
 
 export interface Trade {
@@ -15,11 +17,21 @@ export interface Trade {
   pnlPct: number;
   reason: ExitReason;
   exitStep: number;
+  strategy: StrategyId;
+  entryWhy: string;
+  exitWhy: string;
+  /** Closes the agent saw plus the trade window; entry at chart[entryIndex], exit at chart[exitIndex]. */
+  chart: number[];
+  entryIndex: number;
+  exitIndex: number;
 }
 
 export interface AgentState {
   name: string;
+  strategy: StrategyId;
   trades: number;
+  /** Slots where the chart gave no signal, so the agent stayed out. */
+  passed: number;
   wins: number;
   pnl: number;
   lastTradeId: number | null;
@@ -32,6 +44,7 @@ export interface VenueState {
   trades: number;
   wins: number;
   skipped: number;
+  passed: number;
   agents: AgentState[];
   lastTradeId: number | null;
 }
@@ -51,6 +64,7 @@ interface Scheduled {
 export interface RuleState {
   takeProfitEnabled: boolean;
   stopLossEnabled: boolean;
+  chartRules: boolean;
 }
 
 const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -84,6 +98,7 @@ export class SimSession {
     this.rules = {
       takeProfitEnabled: rules?.takeProfitEnabled ?? cfg.takeProfitEnabled,
       stopLossEnabled: rules?.stopLossEnabled ?? cfg.stopLossEnabled,
+      chartRules: rules?.chartRules ?? cfg.chartRulesEnabled,
     };
     const shareTotal = cfg.venues.reduce((s, v) => s + v.startShare, 0);
     this.venues = cfg.venues.map((v) => {
@@ -95,8 +110,9 @@ export class SimSession {
         trades: 0,
         wins: 0,
         skipped: 0,
+        passed: 0,
         lastTradeId: null,
-        agents: v.agents.map((a) => ({ name: a.name, trades: 0, wins: 0, pnl: 0, lastTradeId: null })),
+        agents: v.agents.map((a) => ({ name: a.name, strategy: a.strategy, trades: 0, passed: 0, wins: 0, pnl: 0, lastTradeId: null })),
       };
     });
     this.schedule = [];
@@ -158,16 +174,28 @@ export class SimSession {
     const agentIndex = this.rng.int(venue.agents.length);
     const ticker = Array.from({ length: 3 + this.rng.int(2) }, () => LETTERS[this.rng.int(LETTERS.length)]).join('');
 
+    const agentState = venue.agents[agentIndex];
+    const strategy = STRATEGIES[this.rules.chartRules ? agentState.strategy : 'blind'];
+    const chart = [...path.history, ...path.prices.slice(1)];
+    const e = path.history.length - 1;
+    const ind = computeIndicators(chart);
+    const entry = strategy.enter(ind, e);
+    if (!entry.ok) {
+      venue.passed++;
+      agentState.passed++;
+      return null;
+    }
+
     const stake = venue.balance * cfg.positionSizePct;
     if (stake < cfg.minTradeUsd) {
       venue.skipped++;
       return null;
     }
-    const exit = findExit(path, {
-      ...this.rules,
-      takeProfitPct: cfg.takeProfitPct,
-      stopLossPct: cfg.stopLossPct,
-    });
+    const exit = findExit(
+      path,
+      { ...this.rules, takeProfitPct: cfg.takeProfitPct, stopLossPct: cfg.stopLossPct },
+      (step) => strategy.exit(ind, e + step, e),
+    );
     const st = settle(stake, exit.exitPrice, cfg.feeRate);
     venue.balance = Math.max(0, venue.balance + st.pnl);
 
@@ -184,11 +212,17 @@ export class SimSession {
       pnlPct: st.pnl / stake,
       reason: exit.reason,
       exitStep: exit.exitStep,
+      strategy: strategy.id,
+      entryWhy: entry.why,
+      exitWhy: exit.why,
+      chart,
+      entryIndex: e,
+      exitIndex: e + exit.exitStep,
     };
     venue.trades++;
     if (st.pnl > 0) venue.wins++;
     venue.lastTradeId = trade.id;
-    const agent = venue.agents[agentIndex];
+    const agent = agentState;
     agent.trades++;
     agent.pnl += st.pnl;
     if (st.pnl > 0) agent.wins++;
