@@ -7,6 +7,7 @@ export interface Trade {
   simTimeMs: number;
   venueId: VenueId;
   agent: string;
+  agentIndex: number;
   ticker: string;
   stake: number;
   fees: number;
@@ -19,6 +20,7 @@ export interface Trade {
 export interface AgentState {
   name: string;
   trades: number;
+  wins: number;
   pnl: number;
   lastTradeId: number | null;
 }
@@ -37,6 +39,8 @@ export interface VenueState {
 export interface HistoryPoint {
   simTimeMs: number;
   total: number;
+  /** Balance per venue, same order as config.venues. */
+  venues: number[];
 }
 
 interface Scheduled {
@@ -92,7 +96,7 @@ export class SimSession {
         wins: 0,
         skipped: 0,
         lastTradeId: null,
-        agents: v.agents.map((name) => ({ name, trades: 0, pnl: 0, lastTradeId: null })),
+        agents: v.agents.map((a) => ({ name: a.name, trades: 0, wins: 0, pnl: 0, lastTradeId: null })),
       };
     });
     this.schedule = [];
@@ -102,11 +106,15 @@ export class SimSession {
       }
     });
     this.schedule.sort((a, b) => a.simTimeMs - b.simTimeMs);
-    this.history.push({ simTimeMs: 0, total: this.total });
+    this.history.push(this.snapshot(0));
   }
 
   get total(): number {
     return this.venues.reduce((s, v) => s + v.balance, 0);
+  }
+
+  private snapshot(simTimeMs: number): HistoryPoint {
+    return { simTimeMs, total: this.total, venues: this.venues.map((v) => v.balance) };
   }
 
   get done(): boolean {
@@ -168,6 +176,7 @@ export class SimSession {
       simTimeMs: s.simTimeMs,
       venueId: venue.id,
       agent: venue.agents[agentIndex].name,
+      agentIndex,
       ticker,
       stake,
       fees: st.entryFee + st.exitFee,
@@ -182,9 +191,10 @@ export class SimSession {
     const agent = venue.agents[agentIndex];
     agent.trades++;
     agent.pnl += st.pnl;
+    if (st.pnl > 0) agent.wins++;
     agent.lastTradeId = trade.id;
     this.trades.push(trade);
-    this.history.push({ simTimeMs: s.simTimeMs, total: this.total });
+    this.history.push(this.snapshot(s.simTimeMs));
     return trade;
   }
 }

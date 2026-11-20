@@ -1,8 +1,10 @@
-import { Money } from './components/Money';
-import { Sparkline } from './components/Sparkline';
+import type { Trade } from '../engine';
+import { Chart } from './components/Chart';
+import { Recap } from './components/Recap';
+import { Toast } from './components/Toast';
 import { TradeTape } from './components/TradeTape';
 import { VenueCard } from './components/VenueCard';
-import { signedPct, signedUsd, simClock, tone, usd } from './format';
+import { elapsed, signedUsd, simClock, tone } from './format';
 import { useSimulation } from './useSimulation';
 
 export function App() {
@@ -10,132 +12,117 @@ export function App() {
   const { cfg, session: s } = sim;
   const total = s.total;
   const pnl = total - s.startingBalance;
-  const multiplier = total / s.startingBalance;
   const trades = s.tradeCount;
   const winRate = trades ? s.wins / trades : 0;
-  const tape = s.trades.slice(-cfg.tapeLength).reverse();
-  const progress = s.simTimeMs / cfg.sessionSimMs;
+  const agentCount = cfg.venues.reduce((n, v) => n + v.agents.length, 0);
+  const latest = s.trades.at(-1);
+  const [whole, cents] = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split('.');
+
+  // last trade per venue and per agent, scanning backwards once
+  const lastByVenue = new Map<string, Trade>();
+  const lastByAgent = new Map<string, Trade>();
+  for (let i = s.trades.length - 1; i >= 0 && lastByAgent.size < agentCount; i--) {
+    const t = s.trades[i];
+    if (!lastByVenue.has(t.venueId)) lastByVenue.set(t.venueId, t);
+    const k = `${t.venueId}:${t.agentIndex}`;
+    if (!lastByAgent.has(k)) lastByAgent.set(k, t);
+  }
+  const toastVenue = sim.toast ? cfg.venues.find((v) => v.id === sim.toast!.venueId) : undefined;
 
   return (
     <div className="app">
+      {sim.toast && toastVenue && <Toast trade={sim.toast} venue={toastVenue} />}
+
       <header className="top">
-        <div className="brand">
-          <span className="logo" aria-hidden="true">◆</span>
-          <h1>Venue Dashboard</h1>
-        </div>
-        <span className="badge badge-sim" title="All numbers on this screen are simulated">Simulation</span>
+        <span className="logo-tile" aria-hidden="true">◆</span>
+        <h1>Venue Bot</h1>
+        <span className="pill mono">multi-venue</span>
+        <span className="top-right">
+          <span className="badge badge-sim" title="Every number on this screen is simulated">Simulation</span>
+          <span className="pill mono clock">{simClock(s.simTimeMs)}</span>
+        </span>
       </header>
 
       <main>
-        <section className="card balance" aria-label="Total simulated balance">
-          <div className="balance-label">
-            <span className="muted small">Simulated balance</span>
-            <span className="badge badge-sim small-badge">Sim</span>
-          </div>
-          <Money value={total} className="big num" />
-          <div className="balance-row">
-            <span className={`num pnl ${tone(pnl)}`}>
-              {signedUsd(pnl)} ({signedPct(pnl / s.startingBalance, 2)})
-            </span>
-            <span className={`chip num ${tone(multiplier - 1)}`} title="Balance divided by starting balance">
-              {multiplier.toFixed(3)}×
-            </span>
-          </div>
-          <div className="balance-row muted small">
-            <span className="num">{trades} trades</span>
-            <span className="num">{(winRate * 100).toFixed(0)}% win</span>
-            <span className="num">Day clock {simClock(s.simTimeMs)}</span>
-          </div>
-          <Sparkline points={s.history} baseline={s.startingBalance} durationMs={cfg.sessionSimMs} />
-          <div className="progress" role="progressbar" aria-label="Session progress"
-            aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100}>
-            <span style={{ width: `${progress * 100}%` }} />
+        <section className="hero" aria-label="Total simulated balance">
+          <p className="mono tiny muted">
+            {cfg.venues.length} venues · {agentCount} agents · {elapsed(s.simTimeMs)} of 24h
+          </p>
+          <div className="hero-row">
+            <div className="hero-left">
+              <span className="big mono">${whole}<span className="cents">.{cents}</span></span>
+              <span className="mono tiny muted">
+                in ${s.startingBalance} · {trades} trades · {Math.round(winRate * 100)}% win
+              </span>
+            </div>
+            <div className="hero-mid">
+              <span className={`mono pnl ${tone(pnl)}`}>{signedUsd(pnl)}</span>
+              <span className="chip mono" title="Balance divided by starting balance">{(total / s.startingBalance).toFixed(2)}×</span>
+            </div>
+            <div className="chart-box">
+              <Chart points={s.history} venues={s.venues} accents={cfg.venues.map((v) => v.accent)} durationMs={cfg.sessionSimMs} />
+            </div>
           </div>
         </section>
 
-        <section className="card alloc" aria-label="Allocation by venue">
+        <section className="alloc" aria-label="Allocation by venue">
           <div className="alloc-bar">
             {s.venues.map((v, i) => (
-              <span key={v.id} className={`accent-${cfg.venues[i].accent}`}
-                style={{ flexGrow: total > 0 ? v.balance / total : 1 }} />
+              <span key={v.id} className={`accent-${cfg.venues[i].accent}`} style={{ flexGrow: total > 0 ? v.balance / total : 1 }} />
             ))}
           </div>
-          <div className="alloc-legend">
+          <div className="alloc-legend mono">
             {s.venues.map((v, i) => (
-              <span key={v.id} className="small">
-                <i className={`dot accent-${cfg.venues[i].accent}`} />
-                {cfg.venues[i].name} <span className="num">{total > 0 ? ((v.balance / total) * 100).toFixed(1) : '0.0'}%</span>
+              <span key={v.id} className={`accent-${cfg.venues[i].accent}`}>
+                <i className="dot" />
+                {cfg.venues[i].name.toUpperCase()} {total > 0 ? Math.round((v.balance / total) * 100) : 0}%
               </span>
             ))}
           </div>
         </section>
 
-        <section className="card controls" aria-label="Simulation controls">
-          <div className="control-row">
-            <button className="btn primary" onClick={sim.startPause}>
-              {sim.running ? 'Pause' : s.done ? 'New session' : s.tradeCount ? 'Resume' : 'Start'}
-            </button>
-            <div className="seg" role="group" aria-label="Speed">
-              {cfg.speeds.map((sp) => (
-                <button key={sp} className={`btn seg-btn ${sim.speed === sp ? 'on' : ''}`}
-                  aria-pressed={sim.speed === sp} onClick={() => sim.setSpeed(sp)}>
-                  {sp}×
-                </button>
-              ))}
-            </div>
-            <button className="btn" onClick={sim.reset}>Reset</button>
+        <section className="controls" aria-label="Simulation controls">
+          <button className="btn primary" onClick={sim.startPause} aria-label={sim.running ? 'Pause' : 'Start'}>
+            {sim.running ? '❚❚ Pause' : s.done ? '▶ New' : s.tradeCount ? '▶ Resume' : '▶ Start'}
+          </button>
+          <div className="seg" role="group" aria-label="Speed">
+            {cfg.speeds.map((sp) => (
+              <button key={sp} className={`seg-btn mono ${sim.speed === sp ? 'on' : ''}`} aria-pressed={sim.speed === sp}
+                onClick={() => sim.setSpeed(sp)}>{sp}×</button>
+            ))}
           </div>
-          <div className="control-row toggles">
-            <label className="toggle">
-              <input type="checkbox" checked={sim.rules.takeProfitEnabled} onChange={() => sim.toggleRule('takeProfitEnabled')} />
-              <span>Take-profit +{(cfg.takeProfitPct * 100).toFixed(0)}%</span>
-            </label>
-            <label className="toggle">
-              <input type="checkbox" checked={sim.rules.stopLossEnabled} onChange={() => sim.toggleRule('stopLossEnabled')} />
-              <span>Stop-loss −{(cfg.stopLossPct * 100).toFixed(0)}%</span>
-            </label>
+          <button className="btn icon" onClick={sim.reset} aria-label="Reset" title="Reset">↺</button>
+          <div className="rule-row">
+            <button className={`rule mono ${sim.rules.takeProfitEnabled ? 'on' : ''}`} aria-pressed={sim.rules.takeProfitEnabled}
+              onClick={() => sim.toggleRule('takeProfitEnabled')}>TP +{Math.round(cfg.takeProfitPct * 100)}%</button>
+            <button className={`rule mono ${sim.rules.stopLossEnabled ? 'on' : ''}`} aria-pressed={sim.rules.stopLossEnabled}
+              onClick={() => sim.toggleRule('stopLossEnabled')}>SL −{Math.round(cfg.stopLossPct * 100)}%</button>
+            {s.done && !sim.recapOpen && <button className="rule mono on" onClick={sim.openRecap}>Recap</button>}
           </div>
         </section>
 
-        {s.done && (
-          <section className="card summary" aria-label="Session summary" aria-live="polite">
-            <div className="balance-label">
-              <h2 className="section-title">Session ended</h2>
-              <span className="badge badge-sim small-badge">Simulation</span>
-            </div>
-            <div className="summary-grid">
-              <div><span className="muted small">Final balance</span><Money value={total} className="num mid" /></div>
-              <div><span className="muted small">Change</span>
-                <span className={`num mid ${tone(pnl)}`}>{signedPct(pnl / s.startingBalance, 2)}</span></div>
-            </div>
-            <p className="small">
-              <strong className="num">{sim.stats.belowStart}</strong> of <strong className="num">{sim.stats.completed}</strong> completed
-              sessions on this device ended below the {usd(s.startingBalance)} start.{' '}
-              <button className="linkish" onClick={sim.clearStats}>Clear count</button>
-            </p>
-          </section>
-        )}
+        {cfg.venues.map((v, i) => (
+          <VenueCard key={v.id} venue={v} state={s.venues[i]} lastTrade={lastByVenue.get(v.id)}
+            agentLastTrade={v.agents.map((_, ai) => lastByAgent.get(`${v.id}:${ai}`))} latestTradeId={latest?.id ?? null} />
+        ))}
 
-        <div className="venues">
-          {cfg.venues.map((v, i) => (
-            <VenueCard key={v.id} venue={v} state={s.venues[i]} />
-          ))}
-        </div>
-
-        <TradeTape trades={tape} venues={cfg.venues} />
+        <TradeTape trades={s.trades.slice(-cfg.tapeLength).reverse()} venues={cfg.venues} total={trades} agentCount={agentCount} />
       </main>
 
-      <footer className="foot small muted">
+      <footer className="foot tiny muted">
         <p>
           <strong>Everything on this screen is simulated.</strong> No account, wallet or exchange is connected, no market
           prices are used and no orders are placed. Prices are random paths generated in your browser: a fair random walk
           with an {Math.round(cfg.rugChance * 100)}% chance per trade of a rug pull, minus a {cfg.feeRate * 100}% fee on
-          each buy and each sale. With these rules the expected result is a loss.
+          each buy and each sale. With these rules the expected result is a loss. Agent percentages are each agent's
+          simulated win rate, not a confidence score.
         </p>
-        <p className="num">
-          Seed {s.seed} · add <code>?seed={s.seed}</code> to the URL to replay this session.
-        </p>
+        <p className="mono">seed {s.seed} · add ?seed={s.seed} to the URL to replay</p>
       </footer>
+
+      {sim.recapOpen && s.done && (
+        <Recap session={s} venues={cfg.venues} stats={sim.stats} onAgain={sim.again} onClose={sim.closeRecap} onClearStats={sim.clearStats} />
+      )}
     </div>
   );
 }

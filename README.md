@@ -83,3 +83,14 @@ tests/            vitest tests: P&L, fees, TP/SL, rugs, non-negative balance, de
 ## Secrets
 
 v1 uses no keys. `.env` is git-ignored. Only `.env.example` is committed. For v2/v3, keys go into a small local backend, never into `VITE_*` variables (those get bundled into the browser). v3 will document how to create **read-only** keys with withdrawal and trading permission switched off.
+
+## Layout
+
+The UI follows the reference layout you shared: a compact header with a clock, the hero balance with P&L, a multiplier chip and a chart panel, the allocation bar, venue cards with three color-coded agent tiles each, toasts for big trades, a venue-tagged trade tape and a 24h recap sheet when the session ends. It differs from the reference in a few places, on purpose:
+
+- **No real brands.** Venue names, icons and the app name are generic and set in `config.ts`. When v3 connects your own accounts, rename the venues to match them.
+- **No deposit or "pay with card" step.** v1 has no money movement (ground rule 2).
+- **"Simulation" badge instead of "venues live".** Nothing is live.
+- **Agent percentages are each agent's simulated win rate**, not a confidence score. The bar under each agent shows the same number.
+- **The chart scales every line to its own start**, so 1× (dashed) is break-even for the total (bold) and for each venue (thin, colored).
+- **The tape shows closed trades with how they exited** (TP / SL / RUG / END), not separate BUY rows, because the engine records each trade once, when it closes.

@@ -14,3 +14,12 @@ export function simClock(ms: number): string {
   const m = totalMin % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
+
+/** Whole dollars once the amount is $10 or more, as in the compact venue stats. */
+export const signedUsdShort = (n: number) =>
+  Math.abs(n) >= 10 ? (n > 0 ? '+' : '−') + '$' + Math.round(Math.abs(n)).toLocaleString('en-US') : signedUsd(n);
+
+export function elapsed(ms: number): string {
+  const m = Math.floor(ms / 60000);
+  return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`;
+}

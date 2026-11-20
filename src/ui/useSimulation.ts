@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { DEFAULT_CONFIG, randomSeed, SimSession, type RuleState } from '../engine';
+import { DEFAULT_CONFIG, randomSeed, SimSession, type RuleState, type Trade } from '../engine';
+
+/** Trades at least this big (as % of stake) pop a toast. */
+const TOAST_MIN_PCT = 0.1;
+const TOAST_MS = 2600;
 
 const STATS_KEY = 'mvd.sessionStats.v1';
 
@@ -47,6 +51,15 @@ export function useSimulation() {
   const [stats, setStats] = useState<SessionStats>(loadStats);
   const [, rerender] = useReducer((x: number) => x + 1, 0);
   const countedRef = useRef(false);
+  const [toast, setToast] = useState<Trade | null>(null);
+  const toastAtRef = useRef(0);
+  const [recapOpen, setRecapOpen] = useState(false);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), TOAST_MS);
+    return () => window.clearTimeout(id);
+  }, [toast]);
 
   useEffect(() => {
     if (!running) return;
@@ -55,12 +68,18 @@ export function useSimulation() {
     const id = window.setInterval(() => {
       const now = performance.now();
       const s = sessionRef.current;
-      s.advanceTo(s.simTimeMs + (now - last) * speed * msPerRealMs);
+      const closed = s.advanceTo(s.simTimeMs + (now - last) * speed * msPerRealMs);
       last = now;
+      const big = closed.filter((t) => Math.abs(t.pnlPct) >= TOAST_MIN_PCT).sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl))[0];
+      if (big && now - toastAtRef.current > TOAST_MS) {
+        toastAtRef.current = now;
+        setToast(big);
+      }
       rerender(); // the clock moves even when no trade closed
       if (s.done) {
         setRunning(false);
         if (!countedRef.current) {
+          setRecapOpen(true);
           countedRef.current = true;
           setStats((prev) => {
             const next = {
@@ -86,6 +105,8 @@ export function useSimulation() {
 
   const reset = useCallback(() => {
     setRunning(false);
+    setRecapOpen(false);
+    setToast(null);
     countedRef.current = false;
     sessionRef.current = new SimSession(cfg, fixedSeed() ?? randomSeed(), rules);
     rerender();
@@ -95,6 +116,7 @@ export function useSimulation() {
     if (sessionRef.current.done) {
       countedRef.current = false;
       sessionRef.current = new SimSession(cfg, fixedSeed() ?? randomSeed(), rules);
+      setRecapOpen(false);
     }
     setRunning((r) => !r);
   }, [cfg, rules]);
@@ -105,5 +127,15 @@ export function useSimulation() {
     setStats(zero);
   }, []);
 
-  return { cfg, session: sessionRef.current, running, speed, setSpeed, rules, toggleRule, reset, startPause, stats, clearStats };
+  const again = useCallback(() => {
+    countedRef.current = false;
+    sessionRef.current = new SimSession(cfg, fixedSeed() ?? randomSeed(), rules);
+    setRecapOpen(false);
+    setRunning(true);
+  }, [cfg, rules]);
+
+  return {
+    cfg, session: sessionRef.current, running, speed, setSpeed, rules, toggleRule, reset, startPause,
+    stats, clearStats, toast, recapOpen, closeRecap: () => setRecapOpen(false), openRecap: () => setRecapOpen(true), again,
+  };
 }

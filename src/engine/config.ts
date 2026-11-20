@@ -16,7 +16,9 @@ export interface VenueConfig {
   accent: 'lime' | 'green' | 'blue';
   /** Share of the starting balance given to this venue (shares are normalised). */
   startShare: number;
-  agents: string[];
+  /** Short descriptor shown under the venue name. */
+  tagline: string;
+  agents: { name: string; color: string }[];
 }
 
 export interface SimConfig {
@@ -60,9 +62,18 @@ export const DEFAULT_CONFIG: SimConfig = {
   seed: null,
   startingBalance: 98,
   venues: [
-    { id: 'launchpad', name: 'Launchpad', icon: '🚀', accent: 'lime', startShare: 1, agents: ['Sniper', 'Momentum', 'Scout'] },
-    { id: 'dex', name: 'DEX', icon: '🔁', accent: 'green', startShare: 1, agents: ['Arb', 'Trend', 'Dip'] },
-    { id: 'cex', name: 'CEX', icon: '🏦', accent: 'blue', startShare: 1, agents: ['Breakout', 'Scalper', 'Swing'] },
+    {
+      id: 'launchpad', name: 'Launchpad', icon: '🚀', accent: 'lime', startShare: 1, tagline: 'sim · new-token launches',
+      agents: [{ name: 'Scout', color: '#e8d44d' }, { name: 'Pairs', color: '#3ddc84' }, { name: 'Exec', color: '#c6f135' }],
+    },
+    {
+      id: 'dex', name: 'DEX', icon: '🔁', accent: 'green', startShare: 1, tagline: 'sim · on-chain swaps',
+      agents: [{ name: 'Sniper', color: '#ff9f43' }, { name: 'Curve', color: '#a78bfa' }, { name: 'Exit', color: '#f472b6' }],
+    },
+    {
+      id: 'cex', name: 'CEX', icon: '🏦', accent: 'blue', startShare: 1, tagline: 'sim · order-book spot',
+      agents: [{ name: 'Smarts', color: '#38bdf8' }, { name: 'Trend', color: '#4c9dff' }, { name: 'Router', color: '#60a5fa' }],
+    },
   ],
   tradesPerVenuePerSession: 40,
   positionSizePct: 0.06,
