@@ -6,6 +6,7 @@ import { Avatar, burstConfetti, compact, fmtPrice, money, pct, Rolling, signed, 
 import { BOT_STRATEGIES, makeBotConfig, RISKS, type BotStrategy, type Risk } from './botConfig';
 import { changePct, CHAINS, createMarket, marketCap, tickMarket, type Chain, type Token } from './market';
 import { loadWallet, saveWallet, touchStreak } from './store';
+import { haptic, initTelegram, telegramFirstName, bindBackButton } from './telegram';
 import { buy, newWallet, positionValue, sell, type PaperWallet } from './wallet';
 
 type Tab = 'discover' | 'bot' | 'wallet' | 'profile';
@@ -28,9 +29,13 @@ export function MiniApp() {
   const market = useMarket();
   const [tab, setTabState] = useState<Tab>('discover');
   const setTab = (t: Tab) => {
+    if (t !== tab) haptic('select');
     setTabState(t);
     window.scrollTo(0, 0);
   };
+  useEffect(() => initTelegram(), []);
+  const firstName = useMemo(() => telegramFirstName(), []);
+  const initials = (firstName ?? 'Paper Trader').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
   const [wallet, setWalletState] = useState<PaperWallet>(loadWallet);
   const [open, setOpen] = useState<number | null>(null);
   const [strategy, setStrategy] = useState<BotStrategy>('momentum');
@@ -55,9 +60,12 @@ export function MiniApp() {
   const holdings = wallet.positions.reduce((s, p) => s + positionValue(p, priceOf(p.tokenId)), 0);
   const total = wallet.cash + holdings;
   const token = open !== null ? byId.get(open) : undefined;
+  // Telegram's own back button closes the token sheet
+  useEffect(() => bindBackButton(token !== undefined, () => setOpen(null)), [token !== undefined]);
 
   const doBuy = (t: Token, usd: number) => {
     setWallet(buy(wallet, t.id, t.symbol, t.price, usd));
+    haptic('tap');
     say(`Paper-bought ${money(Math.min(usd, wallet.cash))} of $${t.symbol}`);
   };
   const doSell = (id: number) => {
@@ -67,6 +75,7 @@ export function MiniApp() {
     if (trade) {
       say(`Sold $${trade.symbol} ${signed(trade.pnl)} (${pct(trade.pnlPct)})`);
       if (trade.pnl > 0) burstConfetti();
+      haptic(trade.pnl > 0 ? 'success' : 'error');
     }
   };
 
@@ -77,7 +86,7 @@ export function MiniApp() {
         <span className="mark" aria-hidden="true">◆</span>
         <strong className="brand">Venue Bot</strong>
         <span className="paper-pill" title="Play money and simulated prices. Nothing here is real.">PAPER</span>
-        <span className="me" aria-hidden="true">PT</span>
+        <span className="me" aria-hidden="true">{initials}</span>
       </header>
 
       <main className="mini-main">
@@ -94,7 +103,7 @@ export function MiniApp() {
             onTopUp={() => { setWallet({ ...wallet, cash: wallet.cash + 100, start: wallet.start + 100 }); say('Added $100 of play money'); }}
             onReset={() => { setWallet(newWallet()); say('Paper wallet reset to $98'); }} />
         )}
-        {tab === 'profile' && <ProfileTab wallet={wallet} streak={streak} sim={sim} />}
+        {tab === 'profile' && <ProfileTab wallet={wallet} streak={streak} sim={sim} name={firstName} initials={initials} />}
       </main>
 
       {token && (
@@ -356,7 +365,7 @@ function WalletTab({ wallet, total, holdings, byId, onOpen, onSell, onDiscover, 
   );
 }
 
-function ProfileTab({ wallet, streak, sim }: { wallet: PaperWallet; streak: number; sim: Sim }) {
+function ProfileTab({ wallet, streak, sim, name, initials }: { wallet: PaperWallet; streak: number; sim: Sim; name: string | null; initials: string }) {
   const h = wallet.history;
   const wins = h.filter((x) => x.pnl > 0).length;
   const realized = h.reduce((s, x) => s + x.pnl, 0);
@@ -374,9 +383,9 @@ function ProfileTab({ wallet, streak, sim }: { wallet: PaperWallet; streak: numb
   return (
     <>
       <section className="profile-head">
-        <span className="me big" aria-hidden="true">PT</span>
+        <span className="me big" aria-hidden="true">{initials}</span>
         <div>
-          <h1 className="page-title">Paper trader</h1>
+          <h1 className="page-title">{name ? `${name} · paper trader` : 'Paper trader'}</h1>
           <span className="muted">🔥 {streak}-day streak · {badges.filter((b) => b.got).length}/{badges.length} badges</span>
         </div>
       </section>

@@ -166,3 +166,7 @@ The UI follows the reference layout you shared: a compact header with a clock, t
 - **Profile:** streak, stats and badges (first profit, survived a rug, +100% club…), plus a short guide to spotting scam trading bots.
 
 It has no wallet connection, no deposit addresses, no keys and no invites. Tests check that every strategy and risk combination still loses money on average (`tests/mini.test.ts`). `npm run build:paper` builds it as one shareable page.
+
+### In Telegram
+
+The mini app also runs as a Telegram Mini App. It loads Telegram's SDK in `mini.html` (`src/mini/telegram.ts`) to follow Telegram's theme, use its back button, send haptic taps, and show the user's first name. Outside Telegram these calls do nothing. Setup steps (Vercel and BotFather, all doable from a phone) are in [TELEGRAM.md](TELEGRAM.md).
