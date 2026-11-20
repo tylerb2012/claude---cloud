@@ -28,7 +28,7 @@ export function App() {
   };
 
   return (
-    <div className="app">
+    <div className="app has-switch">
       <header className="top">
         <span className="logo-tile" aria-hidden="true">◆</span>
         <h1>Venue Bot</h1>

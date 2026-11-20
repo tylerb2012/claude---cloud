@@ -20,7 +20,7 @@
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme="dark"]) {
     --bg: #f3f4f6;
     --surface: #ffffff;
     --surface-2: #f0f1f4;
@@ -39,6 +39,24 @@
     color-scheme: light;
   }
 }
+:root[data-theme="light"] {
+    --bg: #f3f4f6;
+    --surface: #ffffff;
+    --surface-2: #f0f1f4;
+    --border: #e0e3e8;
+    --text: #0f1115;
+    --muted: #5f6774;
+    --up: #0f9f53;
+    --down: #d93036;
+    --venue-lime: #7a9c00;
+    --venue-green: #0f9f53;
+    --venue-blue: #1f6fd6;
+    --sim: #a35c00;
+    --sim-bg: rgba(255, 160, 0, 0.15);
+    --chip-bg: #0f1115;
+    --chip-fg: #ffffff;
+    color-scheme: light;
+  }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -63,7 +81,12 @@ button { font: inherit; color: inherit; }
 .accent-blue { --accent: var(--venue-blue); }
 .accent-text { color: var(--venue-green); }
 
-.app { max-width: 480px; margin: 0 auto; padding: max(10px, env(safe-area-inset-top)) 14px max(24px, env(safe-area-inset-bottom)); }
+.app {
+  max-width: 480px; margin: 0 auto;
+  padding-block: max(10px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
 main { display: flex; flex-direction: column; gap: 10px; }
 
 /* Header */
@@ -255,8 +278,9 @@ main { display: flex; flex-direction: column; gap: 10px; }
 
 /* Mode switch + live view */
 :root { --live: #3ddc84; --live-bg: rgba(61, 220, 132, 0.13); }
-@media (prefers-color-scheme: light) { :root { --live: #0f9f53; --live-bg: rgba(15, 159, 83, 0.12); } }
-.app { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --live: #0f9f53; --live-bg: rgba(15, 159, 83, 0.12); } }
+:root[data-theme="light"] { --live: #0f9f53; --live-bg: rgba(15, 159, 83, 0.12); }
+.app.has-switch { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 .badge-live { color: var(--live); background: var(--live-bg); border-color: color-mix(in srgb, var(--live) 40%, transparent); }
 .mode-switch {
   position: fixed; z-index: 15; left: 0; right: 0; bottom: 0;
