@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "batch": "tsx scripts/batch.ts",
-    "build:paper": "vite build -c vite.paper.config.ts && node scripts/build-paper.mjs"
+    "build:paper": "vite build -c vite.paper.config.ts && node scripts/build-paper.mjs",
+    "build:desk": "node scripts/build-desk.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

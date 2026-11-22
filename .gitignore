@@ -5,3 +5,4 @@ dist
 !.env.example
 *.log
 dist-paper
+dist-desk

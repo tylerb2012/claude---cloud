@@ -1,0 +1,755 @@
+<title>Venue Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one phone-width column of glowing panels (two columns on wide screens); a deliberate single dark terminal look. */
+:root {
+  --bg: #06070b;
+  --panel: #0d1017;
+  --panel-2: #131824;
+  --line: #1e2433;
+  --text: #e9edf5;
+  --muted: #7c8597;
+  --cyan: #2de2e6;
+  --violet: #8b5cf6;
+  --lime: #c6f135;
+  --up: #2fd57e;
+  --down: #ff4d6d;
+  --amber: #ffb020;
+  --liq: #ff2e63;
+  --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.4 var(--display); -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(60% 40% at 15% 0%, rgba(139, 92, 246, 0.16), transparent 70%),
+    radial-gradient(50% 35% at 100% 10%, rgba(45, 226, 230, 0.12), transparent 70%),
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px, 28px 28px;
+  background-attachment: fixed;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+.wrap {
+  max-width: 560px; margin: 0 auto;
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 40px;
+  display: grid; gap: 12px;
+}
+@media (min-width: 1040px) {
+  .wrap { max-width: 1180px; grid-template-columns: 1fr 1fr; align-items: start; }
+  .span2 { grid-column: 1 / -1; }
+}
+
+.top { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.mark {
+  width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #06070b; font-weight: 800;
+  background: conic-gradient(from 200deg, var(--lime), var(--cyan), var(--violet), var(--down), var(--lime));
+  box-shadow: 0 0 22px -2px rgba(45, 226, 230, 0.6);
+}
+.brand { font: 700 19px var(--display); letter-spacing: 0.04em; }
+.brand small { display: block; font: 600 10px var(--mono); color: var(--muted); letter-spacing: 0.08em; white-space: nowrap; }
+@media (max-width: 430px) { .brand small { display: none; } .brand { font-size: 17px; } }
+.pill { font: 800 10px var(--mono); letter-spacing: 0.14em; padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
+.paper { color: var(--amber); background: rgba(255, 176, 32, 0.12); border: 1px solid rgba(255, 176, 32, 0.4); }
+.top-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.clock { font: 600 13px var(--mono); padding: 5px 9px; border-radius: 9px; background: var(--panel-2); border: 1px solid var(--line); }
+.status { font: 800 10px var(--mono); letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; color: var(--muted); }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.status.on { color: var(--up); }
+.status.on i { background: var(--up); box-shadow: 0 0 10px var(--up); animation: blink 1.2s infinite; }
+@keyframes blink { 50% { opacity: 0.35; } }
+
+.panel {
+  position: relative; background: linear-gradient(180deg, rgba(19, 24, 36, 0.92), rgba(13, 16, 23, 0.92));
+  border: 1px solid var(--line); border-radius: 18px; padding: 14px; min-width: 0;
+}
+.panel h2 { margin: 0; font: 700 11px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+
+/* Equity hero */
+.hero { overflow: hidden; }
+.hero::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(120deg, var(--cyan), var(--violet), var(--down), var(--lime)); background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: sheen 8s linear infinite;
+}
+@keyframes sheen { to { background-position: 300% 0; } }
+.hero-row { display: grid; grid-template-columns: 1fr 140px; gap: 10px; align-items: end; }
+.equity { font: 800 44px/1 var(--mono); letter-spacing: -0.04em; }
+.equity .cents { color: var(--muted); }
+.chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.chip { font: 700 12px var(--mono); padding: 4px 9px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); }
+.chip.up { background: rgba(47, 213, 126, 0.12); border-color: rgba(47, 213, 126, 0.35); }
+.chip.down { background: rgba(255, 77, 109, 0.12); border-color: rgba(255, 77, 109, 0.35); }
+#spark { width: 100%; height: 64px; display: block; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
+.stat { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
+.stat b { display: block; font: 800 17px var(--mono); }
+.stat span { font: 600 9px var(--mono); color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* Controls */
+.ctrl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn {
+  min-height: 42px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2);
+  font-weight: 700; cursor: pointer;
+}
+.btn.go { flex: 1; border: 0; color: #06070b; background: linear-gradient(90deg, var(--lime), var(--cyan)); box-shadow: 0 6px 24px -10px var(--cyan); }
+.seg { display: flex; padding: 3px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); }
+.seg button { border: 0; background: none; padding: 0 11px; min-height: 34px; border-radius: 9px; cursor: pointer; font: 700 13px var(--mono); color: var(--muted); }
+.seg button.on { background: var(--panel); color: var(--text); box-shadow: 0 0 0 1px var(--line); }
+.slider { display: grid; gap: 4px; margin-top: 12px; }
+.slider label { display: flex; justify-content: space-between; font: 600 12px var(--mono); }
+.slider input { width: 100%; accent-color: var(--cyan); }
+.slider .hint { font-size: 11px; color: var(--muted); }
+.toggles { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.tog {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; cursor: pointer;
+  background: var(--panel-2); border: 1px solid var(--line); font: 700 12px var(--mono);
+}
+.tog i { width: 26px; height: 15px; border-radius: 999px; background: var(--line); position: relative; transition: background 160ms; }
+.tog i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--muted); transition: transform 160ms, background 160ms; }
+.tog[aria-pressed="true"] i { background: rgba(45, 226, 230, 0.35); }
+.tog[aria-pressed="true"] i::after { transform: translateX(11px); background: var(--cyan); }
+
+/* Pipeline */
+.stage { margin-top: 10px; }
+.stage-name { font: 700 10px var(--mono); letter-spacing: 0.14em; color: var(--violet); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.stage-name::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+.agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.agent {
+  position: relative; padding: 8px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); min-width: 0;
+  transition: border-color 200ms, box-shadow 200ms, transform 200ms;
+}
+.agent .nm { display: flex; align-items: flex-start; gap: 5px; font: 800 10px/1.25 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; min-height: 25px; }
+.agent .nm .led { margin-top: 3px; }
+.agent .st { font: 500 10px/1.3 var(--mono); color: var(--muted); margin-top: 3px; min-height: 26px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.agent .led { width: 7px; height: 7px; border-radius: 50%; background: var(--line); flex: none; }
+.agent.active { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan), 0 0 22px -6px var(--cyan); transform: translateY(-1px); }
+.agent.active .led { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.agent.ok .led { background: var(--up); }
+.agent.warn .led { background: var(--amber); }
+.agent.bad .led, .agent.block .led { background: var(--down); }
+.agent.block { border-color: var(--down); box-shadow: 0 0 18px -8px var(--down); }
+.flow { height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 12px; }
+.flow span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--violet), var(--cyan)); transition: width 200ms; box-shadow: 0 0 10px var(--cyan); }
+
+/* Chart */
+.sym { display: flex; align-items: center; gap: 8px; font: 800 15px var(--mono); }
+.sym em { font-style: normal; font-size: 11px; color: var(--muted); font-weight: 600; }
+.posbox { display: flex; gap: 6px; align-items: center; font: 700 11px var(--mono); }
+.side { padding: 3px 8px; border-radius: 6px; background: rgba(255, 77, 109, 0.15); color: var(--down); border: 1px solid rgba(255, 77, 109, 0.4); }
+#chart { width: 100%; height: 280px; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 600 10px var(--mono); color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 12px; height: 2px; margin-right: 5px; vertical-align: 3px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
+.tabs button { flex: none; border: 1px solid var(--line); background: var(--panel-2); border-radius: 999px; padding: 6px 12px; font: 700 11px var(--mono); cursor: pointer; color: var(--muted); }
+.tabs button.on { color: var(--text); border-color: var(--cyan); box-shadow: 0 0 14px -6px var(--cyan); }
+.list { list-style: none; margin: 0; padding: 0; font: 500 12px var(--mono); max-height: 300px; overflow-y: auto; }
+.list li { display: grid; gap: 8px; padding: 7px 2px; border-bottom: 1px solid var(--line); align-items: center; }
+.feed li { grid-template-columns: 1fr auto; }
+.feed .tag { font: 800 9px var(--mono); padding: 2px 6px; border-radius: 5px; background: var(--panel-2); color: var(--muted); }
+.feed .tag.pass { color: var(--up); }
+.feed .tag.squeeze, .feed .tag.news { color: var(--down); }
+.fills li { grid-template-columns: 38px 46px 1fr auto; }
+.trades li { grid-template-columns: 46px 1fr auto; }
+.book { display: grid; gap: 2px; font: 600 12px var(--mono); }
+.book .lvl { position: relative; display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; overflow: hidden; }
+.book .lvl i { position: absolute; top: 0; bottom: 0; right: 0; opacity: 0.18; }
+.book .ask { color: var(--down); }
+.book .ask i { background: var(--down); }
+.book .bid { color: var(--up); }
+.book .bid i { background: var(--up); }
+.book .mid { text-align: center; padding: 6px; font-weight: 800; color: var(--text); border-block: 1px dashed var(--line); }
+
+/* Reality check */
+#hist { width: 100%; height: 150px; display: block; margin-top: 10px; }
+.rc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+.verdict { margin: 10px 0 0; font-size: 13px; line-height: 1.5; }
+.empty { color: var(--muted); font: 500 12px var(--mono); padding: 8px 0; }
+
+.banner { display: none; }
+.banner.show { display: block; border-color: var(--amber); box-shadow: 0 0 30px -12px var(--amber); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50;
+  padding: 10px 16px; border-radius: 999px; font: 700 13px var(--mono); white-space: nowrap; max-width: calc(100% - 28px); overflow: hidden; text-overflow: ellipsis;
+  background: var(--panel-2); border: 1px solid var(--line); box-shadow: 0 10px 30px -10px #000;
+  animation: drop 260ms ease-out;
+}
+.toast.ok { border-color: var(--up); color: var(--up); }
+.toast.bad { border-color: var(--down); color: var(--down); }
+.toast.block { border-color: var(--amber); color: var(--amber); }
+@keyframes drop { from { opacity: 0; transform: translate(-50%, 10px); } }
+.flash { position: fixed; inset: 0; pointer-events: none; z-index: 40; background: radial-gradient(circle, transparent 40%, rgba(255, 46, 99, 0.35)); animation: fade 700ms ease-out forwards; }
+@keyframes fade { to { opacity: 0; } }
+canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 60; }
+.foot { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.foot strong { color: var(--text); }
+
+@media (max-width: 380px) {
+  .equity { font-size: 36px; }
+  .hero-row { grid-template-columns: 1fr 110px; }
+  .agents { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero::before, .status.on i, .toast, .flash { animation: none; }
+  .agent, .flow span { transition: none; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top span2">
+    <span class="mark" aria-hidden="true">◆</span>
+    <div class="brand">VENUE DESK<small>11 AGENTS · PERP SHORTS</small></div>
+    <span class="pill paper" title="Simulated prices and play money. No exchange, no real orders.">PAPER</span>
+    <div class="top-right">
+      <span class="status" id="status"><i></i><span>PAUSED</span></span>
+      <span class="clock" id="clock">00:00</span>
+    </div>
+  </header>
+
+  <section class="panel hero" aria-label="Paper equity">
+    <div class="head"><h2>Paper equity</h2><span class="pill paper">SIMULATED</span></div>
+    <div class="hero-row">
+      <div>
+        <div class="equity" id="equity">$1,000<span class="cents">.00</span></div>
+        <div class="chips"><span class="chip" id="pnl">+$0.00</span><span class="chip" id="ret">+0.00%</span><span class="chip" id="seed">seed 1</span></div>
+      </div>
+      <canvas id="spark" aria-label="Equity curve"></canvas>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="s-trades">0</b><span>Trades</span></div>
+      <div class="stat"><b id="s-win">0%</b><span>Win rate</span></div>
+      <div class="stat"><b id="s-block">0</b><span>Blocked</span></div>
+      <div class="stat"><b id="s-liq">0</b><span>Liquidated</span></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Controls">
+    <div class="ctrl-row">
+      <button class="btn go" id="go">▶ Start</button>
+      <div class="seg" role="group" aria-label="Speed">
+        <button data-speed="1" class="on" aria-pressed="true">1×</button>
+        <button data-speed="3" aria-pressed="false">3×</button>
+        <button data-speed="10" aria-pressed="false">10×</button>
+      </div>
+      <button class="btn" id="reset" title="New session">↺</button>
+    </div>
+    <div class="slider">
+      <label for="lev"><span>Leverage</span><span id="lev-v">10×</span></label>
+      <input id="lev" type="range" min="1" max="20" step="1" value="10">
+      <span class="hint" id="lev-h">Liquidation about 9.5% above entry.</span>
+    </div>
+    <div class="slider">
+      <label for="edge"><span>Assumed signal edge</span><span id="edge-v">0.000%/bar</span></label>
+      <input id="edge" type="range" min="0" max="50" step="1" value="0">
+      <span class="hint">0 means the wallet monitor predicts nothing, which is all anyone has shown. Raise it to see how much edge the setup would need.</span>
+    </div>
+    <div class="toggles">
+      <button class="tog" id="t-squeeze" aria-pressed="true"><i></i>Squeeze gate</button>
+      <button class="tog" id="t-news" aria-pressed="true"><i></i>News filter</button>
+    </div>
+  </section>
+
+  <section class="panel banner span2" id="banner" aria-live="polite">
+    <div class="head"><h2>Session over</h2><span class="pill paper">SIMULATED</span></div>
+    <p id="banner-text" class="verdict"></p>
+    <button class="btn go" id="again" style="margin-top:10px">Run another session</button>
+  </section>
+
+  <section class="panel" aria-label="Agent pipeline">
+    <div class="head"><h2>Agent pipeline</h2><span class="mono muted" id="sig-count" style="font-size:11px">0 / 40 signals</span></div>
+    <div id="pipeline"></div>
+    <div class="flow" aria-hidden="true"><span id="flow"></span></div>
+  </section>
+
+  <section class="panel" aria-label="Price chart">
+    <div class="head">
+      <div class="sym"><span id="sym">—</span><em>1m · simulated</em></div>
+      <div class="posbox" id="posbox"><span class="muted">FLAT</span></div>
+    </div>
+    <canvas id="chart" aria-label="Candlestick chart of the simulated price"></canvas>
+    <div class="legend">
+      <span><i style="background:var(--cyan)"></i>entry</span>
+      <span><i style="background:var(--up)"></i>take-profit 1 / 2</span>
+      <span><i style="background:var(--amber)"></i>stop</span>
+      <span><i style="background:var(--liq)"></i>liquidation</span>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Desk feeds">
+    <div class="tabs" role="tablist">
+      <button class="on" data-tab="feed" role="tab" aria-selected="true">Wallet monitor</button>
+      <button data-tab="book" role="tab" aria-selected="false">Order book</button>
+      <button data-tab="fills" role="tab" aria-selected="false">Fills</button>
+      <button data-tab="trades" role="tab" aria-selected="false">Trades</button>
+    </div>
+    <div id="tab-body"></div>
+  </section>
+
+  <section class="panel" aria-label="Reality check">
+    <div class="head"><h2>Reality check</h2><span class="pill paper">1,000 SESSIONS</span></div>
+    <p class="verdict muted" style="margin-top:0">Runs 1,000 simulated sessions of 40 signals with your current leverage, edge and gates, and shows how they end.</p>
+    <button class="btn go" id="rc-go" style="width:100%">Run reality check</button>
+    <div id="rc-out"></div>
+  </section>
+
+  <footer class="foot span2">
+    <p><strong>Everything here is simulated.</strong> Prices are a random walk generated in your browser. The wallets, transfers, order book and funding are made up. Nothing connects to Hyperliquid or any exchange, and no orders are placed. Macro Scout and Liq Mapper are display-only. The squeeze gate and news filter help only because this simulator assumes crowded shorts and headline risk cause more upward gaps. Post-only entries and take-profits pay a 0.015% maker fee; stops, time exits and liquidations pay 0.045% taker.</p>
+    <p>Posts that show a bot's best trades with real-looking dollar amounts are marketing. A bot that really front-ran insider selling would not be sold to strangers.</p>
+  </footer>
+</div>
+
+<script>
+/*ENGINE*/
+</script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const money = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const signed = (n) => (n >= 0 ? '+' : '−') + money(Math.abs(n));
+  const pct = (n, d = 2) => (n >= 0 ? '+' : '−') + Math.abs(n * 100).toFixed(d) + '%';
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  const settings = { leverage: 10, edgePerBar: 0, squeezeGate: true, newsFilter: true };
+  let desk, running = false, speed = 1, timer = null, tab = 'feed';
+  let agentState = {}, activeAgent = null, activeUntil = 0;
+
+  function newDesk() {
+    const seed = Math.floor(Math.random() * 1e9);
+    desk = new Desk({ leverage: settings.leverage, edgePerBar: settings.edgePerBar }, seed, { squeezeGate: settings.squeezeGate, newsFilter: settings.newsFilter });
+    agentState = {};
+    AGENTS.forEach((a) => (agentState[a.id] = { text: 'idle', tone: null }));
+    $('banner').classList.remove('show');
+    $('seed').textContent = 'seed ' + seed;
+    render();
+  }
+
+  // ---------- pipeline markup ----------
+  function buildPipeline() {
+    const stages = [];
+    AGENTS.forEach((a) => {
+      let s = stages.find((x) => x.name === a.stage);
+      if (!s) stages.push((s = { name: a.stage, agents: [] }));
+      s.agents.push(a);
+    });
+    $('pipeline').innerHTML = stages.map((s) => `
+      <div class="stage"><div class="stage-name">${s.name}</div><div class="agents">
+        ${s.agents.map((a) => `<div class="agent" id="ag-${a.id}"><div class="nm"><i class="led"></i>${a.icon} ${a.name}</div><div class="st" id="st-${a.id}">idle</div></div>`).join('')}
+      </div></div>`).join('');
+  }
+
+  // ---------- ticking ----------
+  function tick() {
+    const events = desk.step();
+    for (const e of events) handle(e);
+    render();
+    if (desk.done) stop(true);
+  }
+
+  function handle(e) {
+    if (e.type === 'agent') {
+      agentState[e.agent] = { text: e.text, tone: e.tone || null };
+      activeAgent = e.agent;
+      activeUntil = performance.now() + 700;
+    } else if (e.type === 'blocked') {
+      toast('⛔ ' + e.text, 'block');
+    } else if (e.type === 'open') {
+      toast('⚡ ' + e.text, 'ok');
+    } else if (e.type === 'closed') {
+      const t = e.trade;
+      toast(`${t.pnl >= 0 ? '✅' : '❌'} ${t.sym} ${t.reason} ${signed(t.pnl)} (${pct(t.roe, 1)} ROE)`, t.pnl >= 0 ? 'ok' : 'bad');
+      if (t.reason === 'liquidated') redFlash();
+      if (t.reason === 'take-profit 2') confetti();
+      AGENTS.slice(1).forEach((a) => { if (!['scribe'].includes(a.id)) agentState[a.id].tone = agentState[a.id].tone === 'block' ? null : agentState[a.id].tone; });
+    }
+  }
+
+  function start() {
+    if (desk.done) newDesk();
+    running = true;
+    schedule();
+    render();
+  }
+  function stop(finished) {
+    running = false;
+    clearInterval(timer);
+    timer = null;
+    if (finished) showBanner();
+    render();
+  }
+  function schedule() {
+    clearInterval(timer);
+    if (running) timer = setInterval(tick, 420 / speed);
+  }
+
+  // ---------- rendering ----------
+  function render() {
+    const eq = desk.equity;
+    const start0 = desk.cfg.startEquity;
+    const [w, c] = money(eq).split('.');
+    $('equity').innerHTML = `${w}<span class="cents">.${c}</span>`;
+    const pnlEl = $('pnl');
+    pnlEl.textContent = signed(eq - start0);
+    pnlEl.className = 'chip ' + (eq >= start0 ? 'up' : 'down');
+    $('ret').textContent = pct(eq / start0 - 1);
+    $('ret').className = 'chip ' + (eq >= start0 ? 'up' : 'down');
+    const tr = desk.trades;
+    $('s-trades').textContent = tr.length;
+    $('s-win').textContent = tr.length ? Math.round((tr.filter((t) => t.pnl > 0).length / tr.length) * 100) + '%' : '0%';
+    $('s-block').textContent = desk.blocked.squeeze + desk.blocked.news;
+    $('s-liq').textContent = desk.liquidations;
+    $('sig-count').textContent = `${desk.signals} / ${desk.cfg.signalsPerSession} signals`;
+    const bars = desk.chart ? desk.chart.bars.length : 0;
+    const mins = desk.signals * 3 + bars; // display clock: rough minutes elapsed
+    $('clock').textContent = `${String(Math.floor(mins / 60) % 24).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+    $('status').className = 'status' + (running ? ' on' : '');
+    $('status').lastElementChild.textContent = running ? 'RUNNING' : desk.done ? 'DONE' : 'PAUSED';
+    $('go').textContent = running ? '❚❚ Pause' : desk.done ? '▶ New session' : desk.signals ? '▶ Resume' : '▶ Start';
+
+    // pipeline
+    const now = performance.now();
+    AGENTS.forEach((a) => {
+      const el = $('ag-' + a.id);
+      const s = agentState[a.id];
+      el.className = 'agent' + (s.tone ? ' ' + s.tone : '') + (activeAgent === a.id && now < activeUntil ? ' active' : '');
+      $('st-' + a.id).textContent = s.text;
+    });
+    const st = desk.state;
+    const flow = st.kind === 'pipeline' ? (st.stage + 1) / 8 : st.kind === 'open' ? 1 : 0;
+    $('flow').style.width = Math.min(100, flow * 100) + '%';
+
+    // position box
+    const p = desk.position;
+    if (p && desk.chart) {
+      const last = desk.chart.bars[desk.chart.bars.length - 1].c;
+      const unreal = p.qtyOpen * (p.entry - last);
+      const roe = (p.realized + unreal) / p.margin;
+      $('posbox').innerHTML = `<span class="side">SHORT ${p.lev}×</span><span class="${roe >= 0 ? 'up' : 'down'}">${pct(roe, 1)} ROE</span>`;
+    } else {
+      $('posbox').innerHTML = '<span class="muted">FLAT</span>';
+    }
+    $('sym').textContent = desk.chart ? desk.chart.asset.sym + '-PERP' : '—';
+
+    drawSpark();
+    drawChart();
+    renderTab();
+  }
+
+  function sizeCanvas(cv) {
+    const r = cv.getBoundingClientRect();
+    const dpr = devicePixelRatio || 1;
+    if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) {
+      cv.width = Math.round(r.width * dpr);
+      cv.height = Math.round(r.height * dpr);
+    }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w: r.width, h: r.height };
+  }
+
+  function drawSpark() {
+    const { ctx, w, h } = sizeCanvas($('spark'));
+    ctx.clearRect(0, 0, w, h);
+    const v = desk.equityHistory;
+    const base = desk.cfg.startEquity;
+    const lo = Math.min(base, ...v), hi = Math.max(base, ...v);
+    const span = hi - lo || 1;
+    const x = (i) => 2 + (v.length < 2 ? 0 : (i / (v.length - 1)) * (w - 4));
+    const y = (val) => 4 + (1 - (val - lo) / span) * (h - 8);
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = css('--muted');
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.moveTo(0, y(base)); ctx.lineTo(w, y(base)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    if (v.length < 2) return;
+    const col = v[v.length - 1] >= base ? css('--up') : css('--down');
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, col + '55');
+    g.addColorStop(1, col + '00');
+    ctx.beginPath();
+    v.forEach((val, i) => (i ? ctx.lineTo(x(i), y(val)) : ctx.moveTo(x(i), y(val))));
+    ctx.lineTo(x(v.length - 1), h); ctx.lineTo(x(0), h); ctx.closePath();
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath();
+    v.forEach((val, i) => (i ? ctx.lineTo(x(i), y(val)) : ctx.moveTo(x(i), y(val))));
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.stroke(); ctx.shadowBlur = 0;
+  }
+
+  function drawChart() {
+    const { ctx, w, h } = sizeCanvas($('chart'));
+    ctx.clearRect(0, 0, w, h);
+    const ch = desk.chart;
+    ctx.font = '10px ' + css('--mono');
+    if (!ch) {
+      ctx.fillStyle = css('--muted');
+      ctx.fillText('Waiting for the first wallet alert…', 12, h / 2);
+      return;
+    }
+    const bars = ch.bars;
+    const padR = 58, volH = h * 0.16, top = 8, bottom = h - volH - 6;
+    const lines = ch.lines;
+    let lo = Math.min(...bars.map((b) => b.l)), hi = Math.max(...bars.map((b) => b.h));
+    ['entry', 'stop', 'tp1', 'tp2'].forEach((k) => { if (lines[k]) { lo = Math.min(lo, lines[k]); hi = Math.max(hi, lines[k]); } });
+    const liqVisible = lines.liq && lines.liq < hi + (hi - lo) * 0.6;
+    if (liqVisible) hi = Math.max(hi, lines.liq);
+    const pad = (hi - lo) * 0.06 || hi * 0.001;
+    lo -= pad; hi += pad;
+    const y = (p) => top + (1 - (p - lo) / (hi - lo)) * (bottom - top);
+    const n = Math.max(bars.length, 60);
+    const cw = (w - padR) / n;
+    const x = (i) => i * cw + cw / 2;
+    const dec = ch.asset.dec;
+
+    // grid
+    ctx.strokeStyle = css('--line');
+    ctx.lineWidth = 1;
+    const tagYs = ['entry', 'stop', 'tp1', 'tp2', 'liq'].filter((k) => lines[k]).map((k) => y(lines[k])).concat([y(bars[bars.length - 1].c)]);
+    for (let k = 0; k <= 4; k++) {
+      const p = lo + ((hi - lo) * k) / 4;
+      ctx.beginPath(); ctx.moveTo(0, y(p)); ctx.lineTo(w - padR, y(p)); ctx.stroke();
+      if (tagYs.some((ty) => Math.abs(ty - y(p)) < 16)) continue;
+      ctx.fillStyle = css('--muted');
+      ctx.fillText(p.toFixed(dec), w - padR + 6, y(p) + 3);
+    }
+    // hold zone
+    if (desk.position) {
+      const i0 = Math.max(0, desk.position.openIndex - (desk.chart.bars.length - bars.length));
+      ctx.fillStyle = 'rgba(45,226,230,0.06)';
+      ctx.fillRect(x(i0) - cw / 2, top, w - padR - (x(i0) - cw / 2), bottom - top);
+    }
+    // volume
+    const vmax = Math.max(...bars.map((b) => b.vol));
+    bars.forEach((b, i) => {
+      ctx.fillStyle = b.c >= b.o ? 'rgba(47,213,126,0.35)' : 'rgba(255,77,109,0.35)';
+      const vh = (b.vol / vmax) * volH;
+      ctx.fillRect(x(i) - cw * 0.35, h - vh, cw * 0.7, vh);
+    });
+    // candles
+    bars.forEach((b, i) => {
+      const upc = b.c >= b.o;
+      const col = upc ? css('--up') : css('--down');
+      ctx.strokeStyle = col; ctx.fillStyle = col;
+      ctx.beginPath(); ctx.moveTo(x(i), y(b.h)); ctx.lineTo(x(i), y(b.l)); ctx.stroke();
+      const yo = y(b.o), yc = y(b.c);
+      ctx.fillRect(x(i) - cw * 0.32, Math.min(yo, yc), cw * 0.64, Math.max(1, Math.abs(yc - yo)));
+    });
+    // levels
+    const level = (p, colVar, label, dash) => {
+      if (!p) return;
+      const yy = y(p);
+      ctx.setLineDash(dash ? [5, 4] : []);
+      ctx.strokeStyle = css(colVar); ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(w - padR, yy); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = css(colVar);
+      ctx.fillRect(w - padR + 2, yy - 8, padR - 4, 16);
+      ctx.fillStyle = '#06070b';
+      ctx.fillText(label, w - padR + 5, yy + 3);
+    };
+    level(lines.tp2, '--up', 'TP2', true);
+    level(lines.tp1, '--up', 'TP1', true);
+    level(lines.entry, '--cyan', 'ENTRY', false);
+    level(lines.stop, '--amber', 'STOP', true);
+    if (liqVisible) level(lines.liq, '--liq', 'LIQ', false);
+    else if (lines.liq) { ctx.fillStyle = css('--liq'); ctx.fillText(`LIQ ↑ ${lines.liq.toFixed(dec)}`, 8, top + 10); }
+    // fill marks
+    const shift = 0;
+    (ch.marks || []).forEach((m) => {
+      const i = m.i - shift;
+      if (i < 0 || i >= bars.length) return;
+      ctx.beginPath(); ctx.arc(x(i), y(m.price), 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = m.kind === 'entry' ? css('--cyan') : m.kind.startsWith('tp') ? css('--up') : m.kind === 'liq' ? css('--liq') : css('--amber');
+      ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
+    });
+    // last price tag
+    const last = bars[bars.length - 1].c;
+    ctx.fillStyle = css('--text');
+    ctx.fillRect(w - padR + 2, y(last) - 8, padR - 4, 16);
+    ctx.fillStyle = '#06070b';
+    ctx.fillText(last.toFixed(dec), w - padR + 5, y(last) + 3);
+  }
+
+  function renderTab() {
+    const body = $('tab-body');
+    if (tab === 'feed') {
+      body.innerHTML = desk.feed.length
+        ? `<ul class="list feed">${desk.feed.map((s) => `<li><span>🐋 <b>${s.entity}</b> ${s.wallet} sent <b>${s.amount} of ${s.asset.sym}</b> → ${s.dest}</span><span class="tag ${s.blockedBy || 'pass'}">${s.blockedBy ? 'BLOCKED' : 'SHORT'}</span></li>`).join('')}</ul>`
+        : '<p class="empty">No alerts yet. Press Start.</p>';
+    } else if (tab === 'book') {
+      if (!desk.chart) { body.innerHTML = '<p class="empty">No market loaded yet.</p>'; return; }
+      const last = desk.chart.bars[desk.chart.bars.length - 1].c;
+      const dec = desk.chart.asset.dec;
+      const tickSize = last * 0.0004;
+      const rows = [];
+      for (let k = 7; k >= 1; k--) rows.push({ side: 'ask', p: last + k * tickSize, q: 5 + Math.random() * 60 });
+      rows.push({ mid: true });
+      for (let k = 1; k <= 7; k++) rows.push({ side: 'bid', p: last - k * tickSize, q: 5 + Math.random() * 60 });
+      body.innerHTML = `<div class="book">${rows.map((r) => r.mid
+        ? `<div class="mid">${last.toFixed(dec)} <span class="muted">simulated book</span></div>`
+        : `<div class="lvl ${r.side}"><i style="width:${(r.q / 65) * 100}%"></i><span>${r.p.toFixed(dec)}</span><span>${r.q.toFixed(1)}k</span></div>`).join('')}</div>`;
+    } else if (tab === 'fills') {
+      body.innerHTML = desk.fills.length
+        ? `<ul class="list fills">${desk.fills.map((f) => `<li><span class="${f.side === 'SELL' ? 'down' : 'up'}">${f.side}</span><b>${f.sym}</b><span class="muted">${f.note}</span><span>${f.price.toFixed(f.dec)}</span></li>`).join('')}</ul>`
+        : '<p class="empty">No fills yet.</p>';
+    } else {
+      body.innerHTML = desk.trades.length
+        ? `<ul class="list trades">${desk.trades.map((t) => `<li><b>${t.sym}</b><span class="muted">${t.reason} · ${t.bars}m · ${t.lev}×</span><span class="${t.pnl >= 0 ? 'up' : 'down'}">${signed(t.pnl)}</span></li>`).join('')}</ul>`
+        : '<p class="empty">No closed trades yet.</p>';
+    }
+  }
+
+  function showBanner() {
+    const eq = desk.equity, s0 = desk.cfg.startEquity;
+    const tr = desk.trades;
+    $('banner-text').innerHTML = `Equity <b class="${eq >= s0 ? 'up' : 'down'}">${money(eq)}</b> (${pct(eq / s0 - 1)}) after ${desk.signals} signals: ${tr.length} trades, ${desk.blocked.squeeze + desk.blocked.news} blocked by the gates, ${desk.liquidations} liquidated, ${money(desk.feesPaid)} in fees. One session is mostly luck. Run the reality check to see the average.`;
+    $('banner').classList.add('show');
+  }
+
+  // ---------- effects ----------
+  let toastTimer;
+  function toast(text, tone) {
+    document.querySelectorAll('.toast').forEach((t) => t.remove());
+    const t = document.createElement('div');
+    t.className = 'toast ' + (tone || '');
+    t.setAttribute('role', 'status');
+    t.textContent = text;
+    document.body.appendChild(t);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.remove(), 2200);
+  }
+  function redFlash() {
+    if (reduce) return;
+    const f = document.createElement('div');
+    f.className = 'flash';
+    document.body.appendChild(f);
+    setTimeout(() => f.remove(), 800);
+  }
+  function confetti() {
+    if (reduce) return;
+    const c = document.createElement('canvas');
+    c.className = 'confetti';
+    c.width = innerWidth * devicePixelRatio; c.height = innerHeight * devicePixelRatio;
+    document.body.appendChild(c);
+    const ctx = c.getContext('2d'); ctx.scale(devicePixelRatio, devicePixelRatio);
+    const cols = [css('--cyan'), css('--lime'), css('--violet'), css('--up'), css('--amber')];
+    const ps = Array.from({ length: 80 }, () => ({ x: innerWidth / 2, y: innerHeight / 3, vx: (Math.random() - 0.5) * 10, vy: -Math.random() * 9 - 3, r: 3 + Math.random() * 5, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6 }));
+    const t0 = performance.now();
+    (function f(t) {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      ps.forEach((p) => { p.vy += 0.25; p.x += p.vx; p.y += p.vy; p.a += 0.2; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); });
+      if (t - t0 < 1600) requestAnimationFrame(f); else c.remove();
+    })(t0);
+  }
+
+  // ---------- reality check ----------
+  function runReality() {
+    $('rc-go').textContent = 'Running 1,000 sessions…';
+    $('rc-go').disabled = true;
+    setTimeout(() => {
+      const r = realityCheck({ leverage: settings.leverage, edgePerBar: settings.edgePerBar }, { squeezeGate: settings.squeezeGate, newsFilter: settings.newsFilter }, 1000);
+      $('rc-go').textContent = 'Run reality check again';
+      $('rc-go').disabled = false;
+      const s0 = r.start;
+      const verdict = r.avg < s0
+        ? `With these settings the average session <b class="down">loses ${money(s0 - r.avg)}</b> and ${Math.round(r.belowStart * 100)}% of sessions end below ${money(s0)}.`
+        : `With these settings the average session gains ${money(r.avg - s0)}, but only because the edge slider assumes the signal works. Nothing has shown that it does.`;
+      $('rc-out').innerHTML = `
+        <canvas id="hist" aria-label="Histogram of final equity across 1,000 sessions"></canvas>
+        <div class="rc-grid">
+          <div class="stat"><b class="${r.avg >= s0 ? 'up' : 'down'}">${money(r.avg)}</b><span>Average end</span></div>
+          <div class="stat"><b>${Math.round(r.belowStart * 100)}%</b><span>Below start</span></div>
+          <div class="stat"><b>${Math.round(r.winRate * 100)}%</b><span>Trade win rate</span></div>
+          <div class="stat"><b>${money(r.p10)}</b><span>Worst 10%</span></div>
+          <div class="stat"><b>${money(r.p90)}</b><span>Best 10%</span></div>
+          <div class="stat"><b>${r.liqsPerRun.toFixed(2)}</b><span>Liqs / session</span></div>
+        </div>
+        <p class="verdict">${verdict}</p>`;
+      drawHist(r);
+    }, 30);
+  }
+  function drawHist(r) {
+    const { ctx, w, h } = sizeCanvas($('hist'));
+    const lo = Math.min(...r.finals), hi = Math.max(...r.finals, r.start);
+    const nb = 28, bins = new Array(nb).fill(0);
+    r.finals.forEach((f) => bins[Math.min(nb - 1, Math.floor(((f - lo) / (hi - lo || 1)) * nb))]++);
+    const bmax = Math.max(...bins);
+    const bw = w / nb;
+    bins.forEach((b, i) => {
+      const mid = lo + ((i + 0.5) / nb) * (hi - lo);
+      ctx.fillStyle = mid >= r.start ? css('--up') : css('--down');
+      const bh = (b / bmax) * (h - 18);
+      ctx.fillRect(i * bw + 1, h - 14 - bh, bw - 2, bh);
+    });
+    const xs = ((r.start - lo) / (hi - lo || 1)) * w;
+    ctx.setLineDash([4, 4]); ctx.strokeStyle = css('--text');
+    ctx.beginPath(); ctx.moveTo(xs, 0); ctx.lineTo(xs, h - 14); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = css('--muted'); ctx.font = '10px ' + css('--mono');
+    ctx.fillText(money(lo), 0, h - 2);
+    const ht = money(hi); ctx.fillText(ht, w - ctx.measureText(ht).width, h - 2);
+    ctx.fillStyle = css('--text'); ctx.fillText('start', Math.min(w - 30, xs + 4), 10);
+  }
+
+  // ---------- wiring ----------
+  $('go').onclick = () => (running ? stop(false) : start());
+  $('reset').onclick = () => { stop(false); newDesk(); };
+  $('again').onclick = () => { newDesk(); start(); };
+  document.querySelectorAll('[data-speed]').forEach((b) => (b.onclick = () => {
+    speed = Number(b.dataset.speed);
+    document.querySelectorAll('[data-speed]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    schedule();
+  }));
+  const levHint = () => {
+    const L = settings.leverage;
+    $('lev-v').textContent = L + '×';
+    $('lev-h').textContent = `Liquidation about ${((1 / L - 0.005) * 100).toFixed(1)}% above entry. Each trade risks ${money(desk ? desk.equity * 0.1 : 100)} of margin.`;
+  };
+  $('lev').oninput = (e) => { settings.leverage = Number(e.target.value); levHint(); desk.cfg.leverage = settings.leverage; };
+  $('edge').oninput = (e) => {
+    settings.edgePerBar = Number(e.target.value) / 100000;
+    $('edge-v').textContent = (settings.edgePerBar * 100).toFixed(3) + '%/bar';
+    desk.cfg.edgePerBar = settings.edgePerBar;
+  };
+  const tog = (id, key) => ($(id).onclick = () => {
+    settings[key] = !settings[key];
+    $(id).setAttribute('aria-pressed', String(settings[key]));
+    desk.toggles[key] = settings[key];
+  });
+  tog('t-squeeze', 'squeezeGate');
+  tog('t-news', 'newsFilter');
+  document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => {
+    tab = b.dataset.tab;
+    document.querySelectorAll('[data-tab]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', String(x === b)); });
+    renderTab();
+  }));
+  $('rc-go').onclick = runReality;
+  addEventListener('resize', () => render());
+
+  buildPipeline();
+  newDesk();
+  levHint();
+  // open in a realistic state: a few steps into a session, paused, so the page is not empty
+  for (let i = 0; i < 60 && desk.trades.length < 1; i++) { const ev = desk.step(); ev.forEach(handle); }
+  document.querySelectorAll('.toast').forEach((t) => t.remove());
+  render();
+})();
+</script>

@@ -170,3 +170,13 @@ It has no wallet connection, no deposit addresses, no keys and no invites. Tests
 ### In Telegram
 
 The mini app also runs as a Telegram Mini App. It loads Telegram's SDK in `mini.html` (`src/mini/telegram.ts`) to follow Telegram's theme, use its back button, send haptic taps, and show the user's first name. Outside Telegram these calls do nothing. Setup steps (Vercel and BotFather, all doable from a phone) are in [TELEGRAM.md](TELEGRAM.md).
+
+## Venue Desk (paper trading desk)
+
+`desk/` is a single-page "AI trading desk": eleven agents (Wallet Monitor, Macro Scout, Liq Mapper, Funding Watch, Squeeze Gate, News Filter, Sizer, Executor, TP Manager, Stop Guard, Scribe) pass each signal down a pipeline. Signals that get through open a leveraged short on a simulated perpetual future. It has a live candlestick chart with entry, take-profit, stop and liquidation lines, an order book, the wallet-monitor feed, a fills log, and a reality check that runs 1,000 sessions.
+
+- `desk/engine.js`: the engine (no DOM). Tests are in `tests/desk.test.ts`.
+- `desk/ui.html`: the page. `npm run build:desk` inlines the engine into one file in `dist-desk/`.
+- **Assumed signal edge** defaults to 0, because nobody has shown the wallet-monitor signal predicts anything. With 0 edge every setting loses money on average; in the default setup 72% of 1,000 sessions end below the start. Break-even needs roughly 0.02% of favorable drift per bar.
+- The gates help only because the simulator assumes crowded shorts and headline risk cause more upward gaps.
+- Paper only: no exchange connection, no keys, no orders.
