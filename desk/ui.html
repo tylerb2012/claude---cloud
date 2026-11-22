@@ -178,6 +178,27 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 .book .bid i { background: var(--up); }
 .book .mid { text-align: center; padding: 6px; font-weight: 800; color: var(--text); border-block: 1px dashed var(--line); }
 
+.live-pill { color: var(--up); background: rgba(47, 213, 126, 0.12); border: 1px solid rgba(47, 213, 126, 0.4); }
+.vs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vs .stat b { font-size: 20px; }
+.vs .stat.sig { border-color: rgba(45, 226, 230, 0.5); }
+.real-table { width: 100%; border-collapse: collapse; font: 500 12px var(--mono); margin-top: 10px; }
+.real-table th, .real-table td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+.real-table th:first-child, .real-table td:first-child { text-align: left; color: var(--muted); font-weight: 600; }
+.real-table th { color: var(--muted); font-weight: 700; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.table-wrap { overflow-x: auto; }
+.bars2 { display: grid; gap: 6px; margin-top: 10px; }
+.bars2 .row { display: grid; grid-template-columns: 92px 1fr 70px; gap: 8px; align-items: center; font: 600 11px var(--mono); }
+.bars2 .track { position: relative; height: 12px; background: var(--panel-2); border-radius: 6px; }
+.bars2 .track i { position: absolute; top: 0; bottom: 0; border-radius: 6px; }
+.bars2 .track .zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--muted); left: 50%; }
+.verdict-box { margin-top: 12px; padding: 12px; border-radius: 12px; font-size: 13px; line-height: 1.55; background: rgba(255, 77, 109, 0.08); border: 1px solid rgba(255, 77, 109, 0.35); }
+.verdict-box.good { background: rgba(47, 213, 126, 0.08); border-color: rgba(47, 213, 126, 0.35); }
+.verdict-box.flat { background: var(--panel-2); border-color: var(--line); }
+.real-trades li { grid-template-columns: 82px 44px 1fr auto; }
+.wallet-row { display: flex; gap: 8px; margin-top: 8px; }
+.wallet-row input { flex: 1; min-width: 0; min-height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font: 13px var(--mono); }
+.wallet-big { font: 800 30px var(--mono); letter-spacing: -0.03em; }
 .hint-line { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
 .agent { cursor: pointer; text-align: left; font: inherit; color: inherit; width: 100%; }
 .agent:hover { border-color: rgba(45, 226, 230, 0.5); }
@@ -331,6 +352,16 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     <div id="tab-body"></div>
   </section>
 
+  <section class="panel span2" aria-label="Real-data test" id="real">
+    <div class="head"><h2>Real-data test</h2><span class="pill live-pill">REAL PRICES · PAPER</span></div>
+    <div id="real-body"><p class="empty">Loading results…</p></div>
+  </section>
+
+  <section class="panel" aria-label="Your wallet, read-only">
+    <div class="head"><h2>Your wallet</h2><span class="pill live-pill">READ-ONLY</span></div>
+    <div id="wallet-body"></div>
+  </section>
+
   <section class="panel" aria-label="Reality check">
     <div class="head"><h2>Reality check</h2><span class="pill paper">1,000 SESSIONS</span></div>
     <p class="verdict muted" style="margin-top:0">Runs 1,000 simulated sessions of 40 signals with your current leverage, edge and gates, and shows how they end.</p>
@@ -339,7 +370,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
   </section>
 
   <footer class="foot span2">
-    <p><strong>Everything here is simulated.</strong> Prices are a random walk generated in your browser. The wallets, transfers, order book and funding are made up. Nothing connects to Hyperliquid or any exchange, and no orders are placed. Each bot really acts: gates block signals, Liq Mapper moves take-profit 2, Sizer cuts size, Executor can miss fills. The gates can only help because this simulator assumes risk-on markets drift up, crowded shorts get squeezed and headlines cause jumps. Those are assumptions, not measurements. Post-only entries and take-profits pay a 0.015% maker fee; stops, time exits and liquidations pay 0.045% taker.</p>
+    <p><strong>Everything here is simulated.</strong> Prices are a random walk generated in your browser. The wallets, transfers, order book and funding are made up. The live desk above is simulated. The Real-data test uses real Whale Alert transfers and real Hyperliquid prices, traded on paper only. Nothing ever places an order, and the wallet panel can only read a balance. Each bot really acts: gates block signals, Liq Mapper moves take-profit 2, Sizer cuts size, Executor can miss fills. The gates can only help because this simulator assumes risk-on markets drift up, crowded shorts get squeezed and headlines cause jumps. Those are assumptions, not measurements. Post-only entries and take-profits pay a 0.015% maker fee; stops, time exits and liquidations pay 0.045% taker.</p>
     <div id="sheet-root"></div>
     <p>Posts that show a bot's best trades with real-looking dollar amounts are marketing. A bot that really front-ran insider selling would not be sold to strangers.</p>
   </footer>
@@ -762,6 +793,110 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     ctx.fillStyle = css('--text'); ctx.fillText('start', Math.min(w - 30, xs + 4), 10);
   }
 
+  // ---------- real-data test ----------
+  async function loadReal() {
+    const body = $('real-body');
+    try {
+      const res = await fetch('forward/results.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const r = await res.json();
+      const s = r.signal, c = r.control;
+      const verdictTone = Math.abs(r.tRoe) < 2 ? 'flat' : r.tRoe > 0 ? 'good' : '';
+      const verdict = Math.abs(r.tRoe) < 2
+        ? 'No reliable difference: whale-alert shorts did not beat random shorts by more than chance would explain.'
+        : r.tRoe > 0
+          ? 'Whale-alert shorts beat random shorts by more than chance usually explains. Keep watching it: one window can mislead.'
+          : 'Whale-alert shorts did worse than shorting at random. After big transfers to exchanges, prices tended to rise slightly, not fall.';
+      const p = (x, d = 2) => (x >= 0 ? '+' : '−') + Math.abs(x * 100).toFixed(d) + '%';
+      const maxAbs = Math.max(Math.abs(s.meanRoe), Math.abs(c.meanRoe), 0.005);
+      const bar = (label, v, col) => {
+        const w = (Math.abs(v) / maxAbs) * 50;
+        const left = v >= 0 ? 50 : 50 - w;
+        return `<div class="row"><span>${label}</span><span class="track"><span class="zero"></span><i style="left:${left}%;width:${w}%;background:${col}"></i></span><span class="${v >= 0 ? 'up' : 'down'}">${p(v)}</span></div>`;
+      };
+      const when = (iso) => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      body.innerHTML = `
+        <p class="verdict muted" style="margin-top:0">${s.n} real whale transfers to exchanges from the last ${r.windowDays} days (Whale Alert's free archive, up to ${when(r.archiveLastAlert)}), each traded on paper with the desk's exit rules on Hyperliquid's real ${r.candleInterval} candles, against ${c.n} shorts at random times on the same coins.</p>
+        <div class="vs">
+          <div class="stat sig"><b class="${s.meanPnl >= 0 ? 'up' : 'down'}">${signed(s.meanPnl)}</b><span>Whale-alert short, avg per trade</span></div>
+          <div class="stat"><b class="${c.meanPnl >= 0 ? 'up' : 'down'}">${signed(c.meanPnl)}</b><span>Random short, avg per trade</span></div>
+        </div>
+        <div class="bars2" aria-label="Average return on margin">${bar('Whale alerts', s.meanRoe, 'var(--cyan)')}${bar('Random', c.meanRoe, 'var(--muted)')}</div>
+        <div class="table-wrap"><table class="real-table">
+          <tr><th></th><th>Whale alerts</th><th>Random</th></tr>
+          <tr><td>Trades</td><td>${s.n}</td><td>${c.n}</td></tr>
+          <tr><td>Win rate</td><td>${Math.round(s.winRate * 100)}%</td><td>${Math.round(c.winRate * 100)}%</td></tr>
+          <tr><td>Return on margin</td><td>${p(s.meanRoe)}</td><td>${p(c.meanRoe)}</td></tr>
+          <tr><td>Price 1h later, for a short</td><td>${p(s.ret1h.mean, 3)}</td><td>${p(c.ret1h.mean, 3)}</td></tr>
+          <tr><td>Price 4h later, for a short</td><td>${p(s.ret4h.mean, 3)}</td><td>${p(c.ret4h.mean, 3)}</td></tr>
+          <tr><td>Total on $${r.rules.marginUsd} margin each</td><td class="${s.totalPnl >= 0 ? 'up' : 'down'}">${signed(s.totalPnl)}</td><td class="muted">—</td></tr>
+        </table></div>
+        <div class="verdict-box ${verdictTone}"><b>${verdict}</b><br><span class="muted">Difference vs random, t-statistic ${r.tRoe.toFixed(2)} (around ±2 or beyond is notable). Alerts often come in bursts, which overstates certainty. ${r.rules.leverage}× leverage, TP ${p(-r.rules.tp1, 1)} / ${p(-r.rules.tp2, 1)}, stop ${p(r.rules.stop, 1)}, ${r.rules.holdMinutes}-minute limit, fees included. Updated ${when(r.generatedAt)}.</span></div>
+        <div class="lbl" style="margin-top:12px;font:700 10px var(--mono);letter-spacing:.14em;color:var(--violet)">LATEST REAL ALERTS, TRADED ON PAPER</div>
+        <ul class="list real-trades">${r.trades.slice(0, 12).map((t) => `<li><span class="muted">${when(t.time)}</span><b>${t.coin}</b><span class="muted">$${t.usdM}M → ${t.to}</span><span class="${t.pnl >= 0 ? 'up' : 'down'}">${signed(t.pnl)}</span></li>`).join('')}</ul>`;
+    } catch (e) {
+      body.innerHTML = '<p class="empty">No results file here. Run <code>npm run forward</code> in the repo, or open the desk on your deployed site.</p>';
+    }
+  }
+
+  // ---------- your wallet (read-only) ----------
+  const RPC = 'https://api.mainnet-beta.solana.com';
+  let walletAddr = null;
+  try { walletAddr = localStorage.getItem('desk.wallet'); } catch { /* storage blocked */ }
+  function renderWallet(state) {
+    const body = $('wallet-body');
+    const phantom = window.phantom && window.phantom.solana && window.phantom.solana.isPhantom ? window.phantom.solana : null;
+    if (!walletAddr) {
+      body.innerHTML = `
+        <p class="verdict muted" style="margin-top:0">See your real Phantom balance next to the paper account. The desk only reads your public address: it can't sign, trade or move funds.</p>
+        ${phantom ? '<button class="btn go" id="w-connect" style="width:100%">Connect Phantom (read-only)</button>' : '<p class="empty">Phantom isn\'t available in this browser. Open the desk inside the Phantom app, or paste your address.</p>'}
+        <div class="wallet-row"><input id="w-addr" placeholder="Solana address" aria-label="Solana address" spellcheck="false" autocapitalize="off"><button class="btn" id="w-watch">Watch</button></div>
+        ${state && state.error ? `<p class="empty down">${state.error}</p>` : ''}`;
+      if ($('w-connect')) $('w-connect').onclick = async () => {
+        try { const r = await phantom.connect(); setWallet(r.publicKey.toString()); } catch { renderWallet({ error: 'Phantom connection was cancelled.' }); }
+      };
+      $('w-watch').onclick = () => {
+        const a = $('w-addr').value.trim();
+        if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a)) setWallet(a); else renderWallet({ error: "That doesn't look like a Solana address." });
+      };
+      return;
+    }
+    const short = walletAddr.slice(0, 4) + '…' + walletAddr.slice(-4);
+    const s = state || {};
+    const margin = desk ? desk.equity * desk.cfg.marginPct : 100;
+    body.innerHTML = `
+      <p class="mono muted" style="margin:0;font-size:11px">${short} · solana mainnet</p>
+      <div class="wallet-big">${s.usd != null ? money(s.usd) : s.sol != null ? s.sol.toFixed(4) + ' SOL' : s.error ? '—' : 'Loading…'}</div>
+      ${s.sol != null ? `<p class="mono muted" style="margin:0;font-size:12px">${s.sol.toFixed(4)} SOL${s.price ? ' @ ' + money(s.price) : ''}</p>` : ''}
+      ${s.usd ? `<p class="verdict" style="margin-top:8px">One desk trade puts up ${money(margin)} of margin at ${desk.cfg.leverage}×, which is <b>${((margin / s.usd) * 100).toFixed(0)}%</b> of this wallet. At ${desk.cfg.leverage}× a ${((1 / desk.cfg.leverage) * 100).toFixed(0)}% move against you wipes that margin out.</p>` : ''}
+      ${s.error ? `<p class="empty down">${s.error}</p>` : ''}
+      <div class="wallet-row"><button class="btn" id="w-refresh">↻ Refresh</button><button class="btn" id="w-forget">Disconnect</button></div>`;
+    $('w-refresh').onclick = () => loadWallet();
+    $('w-forget').onclick = () => { walletAddr = null; try { localStorage.removeItem('desk.wallet'); } catch { /* ignore */ } try { phantom && phantom.disconnect(); } catch { /* ignore */ } renderWallet(); };
+  }
+  function setWallet(a) {
+    walletAddr = a;
+    try { localStorage.setItem('desk.wallet', a); } catch { /* ignore */ }
+    loadWallet();
+  }
+  async function loadWallet() {
+    renderWallet({});
+    try {
+      const r = await fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getBalance', params: [walletAddr] }) });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message);
+      const sol = j.result.value / 1e9;
+      let price = null;
+      try {
+        const pr = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+        price = (await pr.json()).solana.usd;
+      } catch { /* no price: show SOL only */ }
+      renderWallet({ sol, price, usd: price ? sol * price : null });
+    } catch (e) {
+      renderWallet({ error: "Couldn't reach the Solana network from here. This page may block outside connections; open the desk from your deployed site." });
+    }
+  }
+
   // ---------- wiring ----------
   $('go').onclick = () => (running ? stop(false) : start());
   $('reset').onclick = () => { stop(false); newDesk(); };
@@ -866,6 +1001,8 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
   buildPipeline();
   renderQuick();
   newDesk();
+  loadReal();
+  if (walletAddr) loadWallet(); else renderWallet();
   levHint();
   // open in a realistic state: a few steps into a session, paused, so the page is not empty
   for (let i = 0; i < 60 && desk.trades.length < 1; i++) { const ev = desk.step(); ev.forEach(handle); }

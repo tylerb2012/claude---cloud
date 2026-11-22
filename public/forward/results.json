@@ -1,0 +1,2134 @@
+{
+ "generatedAt": "2026-11-22T22:15:25.380Z",
+ "archiveLastAlert": "2026-11-17T20:26:33.000Z",
+ "windowDays": 50,
+ "candleInterval": "15m",
+ "rules": {
+  "leverage": 10,
+  "marginUsd": 100,
+  "tp1": 0.01,
+  "tp2": 0.022,
+  "stop": 0.009,
+  "trail": 0.009,
+  "holdMinutes": 60,
+  "makerFee": 0.00015,
+  "takerFee": 0.00045,
+  "minTransferUsd": 1000000
+ },
+ "signal": {
+  "n": 205,
+  "meanPnl": -1.0843778614271065,
+  "totalPnl": -222.29746159255683,
+  "meanRoe": -0.010843778614271068,
+  "seRoe": 0.0033330142289461407,
+  "winRate": 0.35609756097560974,
+  "ret1h": {
+   "n": 205,
+   "mean": -0.0006169578112323513,
+   "sd": 0.005613417279883834,
+   "se": 0.00039205806910673274
+  },
+  "ret4h": {
+   "n": 205,
+   "mean": -0.0003921152699054294,
+   "sd": 0.009063543035990777,
+   "se": 0.0006330253043347339
+  },
+  "reasons": {
+   "time exit": 185,
+   "stop": 18,
+   "trailing stop": 2
+  }
+ },
+ "control": {
+  "n": 1025,
+  "meanPnl": -0.11019023491101376,
+  "totalPnl": -112.94499078378911,
+  "meanRoe": -0.001101902349110137,
+  "seRoe": 0.0014109720217203203,
+  "winRate": 0.4448780487804878,
+  "ret1h": {
+   "n": 1025,
+   "mean": 0.00038733036339825183,
+   "sd": 0.006195451794515227,
+   "se": 0.00019351340266979166
+  },
+  "ret4h": {
+   "n": 1025,
+   "mean": 0.001174454497800979,
+   "sd": 0.01084665256641021,
+   "se": 0.00033879250703899725
+  },
+  "reasons": {
+   "time exit": 939,
+   "trailing stop": 15,
+   "stop": 57,
+   "take-profit 2": 14
+  }
+ },
+ "tRoe": -2.691595833170391,
+ "tRet1h": -2.297012104959794,
+ "tRet4h": -2.1818998733550883,
+ "coins": {
+  "BTC": 160,
+  "ETH": 25,
+  "SOL": 5,
+  "HYPE": 4,
+  "DOGE": 4,
+  "TRX": 1,
+  "UNI": 1,
+  "LINK": 5
+ },
+ "trades": [
+  {
+   "time": "2026-11-17T20:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 57.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -7.44,
+   "ret1h": -0.006832181607829613,
+   "ret4h": -0.012085300647259212
+  },
+  {
+   "time": "2026-11-17T20:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 99.6,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -7.44,
+   "ret1h": -0.006832181607829613,
+   "ret4h": -0.012085300647259212
+  },
+  {
+   "time": "2026-11-17T20:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 93.2,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -4.32,
+   "ret1h": -0.0037189888116497816,
+   "ret4h": -0.01875186341738977
+  },
+  {
+   "time": "2026-11-17T20:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 60.5,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -4.32,
+   "ret1h": -0.0037189888116497816,
+   "ret4h": -0.01875186341738977
+  },
+  {
+   "time": "2026-11-17T10:45:00.000Z",
+   "coin": "ETH",
+   "usdM": 162.5,
+   "to": "binance",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.013492417484388897,
+   "ret4h": -0.014384478144513935
+  },
+  {
+   "time": "2026-11-16T16:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 143.8,
+   "to": "kraken",
+   "reason": "time exit",
+   "pnl": -3.09,
+   "ret1h": -0.00248667850799289,
+   "ret4h": -0.0059618503359333275
+  },
+  {
+   "time": "2026-11-16T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 75.6,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.009436455499417074,
+   "ret4h": -0.010617955693742687
+  },
+  {
+   "time": "2026-11-16T11:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 67.4,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 9.06,
+   "ret1h": 0.009023929665975317,
+   "ret4h": 0.0040089155805962395
+  },
+  {
+   "time": "2026-11-15T16:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 54.7,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -2.28,
+   "ret1h": -0.0016837097222650588,
+   "ret4h": -0.0020389879205413575
+  },
+  {
+   "time": "2026-11-15T01:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 52.9,
+   "to": "coinbase",
+   "reason": "trailing stop",
+   "pnl": 10.72,
+   "ret1h": 0.012617699477942668,
+   "ret4h": -0.023831679888964175
+  },
+  {
+   "time": "2026-11-14T23:45:00.000Z",
+   "coin": "SOL",
+   "usdM": 130.4,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.0071414173409740656,
+   "ret4h": -0.032942667089008726
+  },
+  {
+   "time": "2026-11-13T18:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 145.9,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.78,
+   "ret1h": -0.0021791873084131552,
+   "ret4h": 0.010678017811224239
+  },
+  {
+   "time": "2026-11-13T16:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 197.8,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -6.14,
+   "ret1h": -0.005533550792171438,
+   "ret4h": -0.003203634669151967
+  },
+  {
+   "time": "2026-11-13T16:30:00.000Z",
+   "coin": "ETH",
+   "usdM": 61.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.42,
+   "ret1h": -0.001815070269149066,
+   "ret4h": -0.010890421614893953
+  },
+  {
+   "time": "2026-11-12T17:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 123.9,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.73,
+   "ret1h": -0.0021326122409155435,
+   "ret4h": 0.004251285839733443
+  },
+  {
+   "time": "2026-11-12T17:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 129.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.73,
+   "ret1h": -0.0021326122409155435,
+   "ret4h": 0.004251285839733443
+  },
+  {
+   "time": "2026-11-12T17:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 143.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.73,
+   "ret1h": -0.0021326122409155435,
+   "ret4h": 0.004251285839733443
+  },
+  {
+   "time": "2026-11-12T17:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 118.6,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.73,
+   "ret1h": -0.0021326122409155435,
+   "ret4h": 0.004251285839733443
+  },
+  {
+   "time": "2026-11-12T15:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 80.9,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.0011342790326420715,
+   "ret4h": -0.0019884891683354944
+  },
+  {
+   "time": "2026-11-12T15:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 152,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.008265157458253958,
+   "ret4h": -0.003362097949120235
+  },
+  {
+   "time": "2026-11-12T15:00:00.000Z",
+   "coin": "ETH",
+   "usdM": 66.9,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.85,
+   "ret1h": -0.0022452849017065013,
+   "ret4h": -0.005787845524398705
+  },
+  {
+   "time": "2026-11-12T04:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 105.4,
+   "to": "kraken",
+   "reason": "time exit",
+   "pnl": 2.11,
+   "ret1h": 0.0027117908666883794,
+   "ret4h": 0.0022914632823516357
+  },
+  {
+   "time": "2026-11-11T20:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 69.2,
+   "to": "kraken",
+   "reason": "time exit",
+   "pnl": -0.32,
+   "ret1h": 0.0002820268328386222,
+   "ret4h": 0.005089912840278821
+  },
+  {
+   "time": "2026-11-11T18:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 74.4,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -0.05,
+   "ret1h": 0.0005508309486383922,
+   "ret4h": 0.0023108030040439598
+  },
+  {
+   "time": "2026-11-11T11:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 74,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 0.06,
+   "ret1h": 0.0006621979566463487,
+   "ret4h": 0.0014325098653981128
+  },
+  {
+   "time": "2026-11-11T11:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 103,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 0.08,
+   "ret1h": 0.0006758492045254583,
+   "ret4h": 0.004649842527135295
+  },
+  {
+   "time": "2026-11-10T17:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 69.4,
+   "to": "kraken",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.007964686690336897,
+   "ret4h": -0.012145804488190137
+  },
+  {
+   "time": "2026-11-10T17:30:00.000Z",
+   "coin": "ETH",
+   "usdM": 53.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -4.41,
+   "ret1h": -0.003803784024107193,
+   "ret4h": -0.01773452551499277
+  },
+  {
+   "time": "2026-11-10T17:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 68.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -6.19,
+   "ret1h": -0.00558712901188807,
+   "ret4h": -0.012464651456497222
+  },
+  {
+   "time": "2026-11-10T17:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 54.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -6.19,
+   "ret1h": -0.00558712901188807,
+   "ret4h": -0.012464651456497222
+  },
+  {
+   "time": "2026-11-10T16:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 100.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 2.26,
+   "ret1h": 0.0028541385008261644,
+   "ret4h": -0.005749245496879496
+  },
+  {
+   "time": "2026-11-10T10:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 51.9,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -3.07,
+   "ret1h": -0.0024673713730989366,
+   "ret4h": -0.0017392945744796329
+  },
+  {
+   "time": "2026-11-10T10:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 51.9,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -3.07,
+   "ret1h": -0.0024673713730989366,
+   "ret4h": -0.0017392945744796329
+  },
+  {
+   "time": "2026-11-09T17:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 90.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 1.07,
+   "ret1h": 0.0016697166824732879,
+   "ret4h": 0.000253796935735906
+  },
+  {
+   "time": "2026-11-09T17:15:00.000Z",
+   "coin": "HYPE",
+   "usdM": 31,
+   "to": "falconx",
+   "reason": "time exit",
+   "pnl": 7.58,
+   "ret1h": 0.00605875396941391,
+   "ret4h": 0.007905610990792233
+  },
+  {
+   "time": "2026-11-09T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 72,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 2.48,
+   "ret1h": 0.003076185529942821,
+   "ret4h": 0.0013449988680702685
+  },
+  {
+   "time": "2026-11-09T16:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 156.6,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 7.53,
+   "ret1h": 0.00595994914176734,
+   "ret4h": 0.008635304089849583
+  },
+  {
+   "time": "2026-11-09T15:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 65.8,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.0029517042419062722,
+   "ret4h": 0.003325675820066265
+  },
+  {
+   "time": "2026-11-09T01:45:00.000Z",
+   "coin": "HYPE",
+   "usdM": 30.6,
+   "to": "falconx",
+   "reason": "time exit",
+   "pnl": -3.98,
+   "ret1h": -0.003382533825338152,
+   "ret4h": 0.00927857104658003
+  },
+  {
+   "time": "2026-11-06T16:00:00.000Z",
+   "coin": "ETH",
+   "usdM": 61.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.07,
+   "ret1h": -0.002466257118514781,
+   "ret4h": -0.0021523698488856713
+  },
+  {
+   "time": "2026-11-06T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 113.5,
+   "to": "bitfinex",
+   "reason": "time exit",
+   "pnl": -2.64,
+   "ret1h": -0.0020359598096244547,
+   "ret4h": -0.0007800105764146359
+  },
+  {
+   "time": "2026-11-06T14:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 113.6,
+   "to": "bitstamp",
+   "reason": "time exit",
+   "pnl": 3.99,
+   "ret1h": 0.004585644823360435,
+   "ret4h": 0.0015285482744534784
+  },
+  {
+   "time": "2026-11-06T03:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 68.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 1.1,
+   "ret1h": 0.001700052714812883,
+   "ret4h": 0.002385345282024276
+  },
+  {
+   "time": "2026-11-05T20:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 152.2,
+   "to": "kraken",
+   "reason": "time exit",
+   "pnl": 0.82,
+   "ret1h": 0.001419315837199231,
+   "ret4h": -0.001038203251284564
+  },
+  {
+   "time": "2026-11-05T19:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 76,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -1.27,
+   "ret1h": -0.0006706819915309747,
+   "ret4h": 0.0023145104021461416
+  },
+  {
+   "time": "2026-11-05T16:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 130.2,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 10.62,
+   "ret1h": 0.012139427768453115,
+   "ret4h": 0.009940538922934783
+  },
+  {
+   "time": "2026-11-05T15:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 109.1,
+   "to": "coinbase institutional",
+   "reason": "trailing stop",
+   "pnl": 9.61,
+   "ret1h": 0.008208218608758866,
+   "ret4h": 0.009597901189672187
+  },
+  {
+   "time": "2026-11-05T02:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 171,
+   "to": "cryptocom",
+   "reason": "time exit",
+   "pnl": -0.79,
+   "ret1h": -0.0001859865345748002,
+   "ret4h": 0.0016242824019541136
+  },
+  {
+   "time": "2026-11-05T02:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 172.7,
+   "to": "cryptocom",
+   "reason": "time exit",
+   "pnl": -0.79,
+   "ret1h": -0.0001859865345748002,
+   "ret4h": 0.0016242824019541136
+  },
+  {
+   "time": "2026-11-04T18:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 231.9,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 3,
+   "ret1h": 0.003599667341087076,
+   "ret4h": -0.00084405992825487
+  },
+  {
+   "time": "2026-11-04T17:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 56.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.57,
+   "ret1h": -0.001965076364359941,
+   "ret4h": 0.00414158499577133
+  },
+  {
+   "time": "2026-11-04T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 68.9,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 2.56,
+   "ret1h": 0.003155279503105568,
+   "ret4h": 0.0053416149068322705
+  },
+  {
+   "time": "2026-11-04T16:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 65.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.27,
+   "ret1h": -0.002666334413157223,
+   "ret4h": 0.0038873660603040427
+  },
+  {
+   "time": "2026-11-04T15:30:00.000Z",
+   "coin": "ETH",
+   "usdM": 51.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 3.58,
+   "ret1h": 0.004179300172088785,
+   "ret4h": 0.005941162009341916
+  },
+  {
+   "time": "2026-11-04T09:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 85.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.83,
+   "ret1h": -0.003229800977876396,
+   "ret4h": -0.0012127711181748602
+  },
+  {
+   "time": "2026-11-03T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 105.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.19,
+   "ret1h": -0.0015849494233619588,
+   "ret4h": 0.00002577153533922516
+  },
+  {
+   "time": "2026-11-03T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 162.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.1,
+   "ret1h": -0.0024954745280578727,
+   "ret4h": -0.003206620118955339
+  },
+  {
+   "time": "2026-11-03T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 76.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.1,
+   "ret1h": -0.0024954745280578727,
+   "ret4h": -0.003206620118955339
+  },
+  {
+   "time": "2026-11-03T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 173.2,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.1,
+   "ret1h": -0.0024954745280578727,
+   "ret4h": -0.003206620118955339
+  },
+  {
+   "time": "2026-11-03T11:15:00.000Z",
+   "coin": "DOGE",
+   "usdM": 31.4,
+   "to": "gateio",
+   "reason": "time exit",
+   "pnl": 0.46,
+   "ret1h": 0.0010582577594405729,
+   "ret4h": -0.007997213701089079
+  },
+  {
+   "time": "2026-11-03T06:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 575.1,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 0.5,
+   "ret1h": 0.001096033402922747,
+   "ret4h": -0.005127870563674364
+  },
+  {
+   "time": "2026-11-03T01:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 64.1,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 2.08,
+   "ret1h": 0.0026836066636416467,
+   "ret4h": 0.0052764633434886354
+  },
+  {
+   "time": "2026-11-02T23:00:00.000Z",
+   "coin": "TRX",
+   "usdM": 63.7,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -0.98,
+   "ret1h": -0.0003759398496241406,
+   "ret4h": -0.003978696741854693
+  },
+  {
+   "time": "2026-11-02T16:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 77.4,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -0.25,
+   "ret1h": 0.0003483960876409231,
+   "ret4h": 0.005432398255438842
+  },
+  {
+   "time": "2026-11-02T16:00:00.000Z",
+   "coin": "ETH",
+   "usdM": 73.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 1.29,
+   "ret1h": 0.0018921892189219802,
+   "ret4h": 0.008580858085808551
+  },
+  {
+   "time": "2026-11-02T15:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 144.7,
+   "to": "kraken",
+   "reason": "time exit",
+   "pnl": 5.67,
+   "ret1h": 0.006269552284732582,
+   "ret4h": 0.0154879737422432
+  },
+  {
+   "time": "2026-11-02T15:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 172.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 5.67,
+   "ret1h": 0.006269552284732582,
+   "ret4h": 0.0154879737422432
+  },
+  {
+   "time": "2026-11-01T01:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 62.1,
+   "to": "kraken",
+   "reason": "time exit",
+   "pnl": -1.41,
+   "ret1h": -0.0008116255700703068,
+   "ret4h": -0.0024091108190977817
+  },
+  {
+   "time": "2026-10-31T13:45:00.000Z",
+   "coin": "SOL",
+   "usdM": 52.7,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 2.41,
+   "ret1h": 0.0030102912378651148,
+   "ret4h": 0.00021874088579643125
+  },
+  {
+   "time": "2026-10-31T05:30:00.000Z",
+   "coin": "SOL",
+   "usdM": 58.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 0.2,
+   "ret1h": 0.0008023006230853946,
+   "ret4h": 0.0055014899868714995
+  },
+  {
+   "time": "2026-10-30T22:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 57.5,
+   "to": "bitfinex",
+   "reason": "time exit",
+   "pnl": -4.41,
+   "ret1h": -0.0038119275603663016,
+   "ret4h": -0.006583055786844261
+  },
+  {
+   "time": "2026-10-30T21:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 51.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.16,
+   "ret1h": -0.002556510623866748,
+   "ret4h": -0.011008647788487869
+  },
+  {
+   "time": "2026-10-30T19:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 53.6,
+   "to": "paypal",
+   "reason": "time exit",
+   "pnl": -6.52,
+   "ret1h": -0.005921955683378055,
+   "ret4h": -0.007346885417347515
+  },
+  {
+   "time": "2026-10-30T18:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 66.7,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 8.42,
+   "ret1h": 0.007743994188761483,
+   "ret4h": 0.002970476832874991
+  },
+  {
+   "time": "2026-10-30T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 77.1,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 7.96,
+   "ret1h": 0.006805454734003957,
+   "ret4h": 0.006014725707767288
+  },
+  {
+   "time": "2026-10-30T16:00:00.000Z",
+   "coin": "ETH",
+   "usdM": 52.6,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.98,
+   "ret1h": -0.0023810593467810115,
+   "ret4h": -0.005211375174086763
+  },
+  {
+   "time": "2026-10-30T15:30:00.000Z",
+   "coin": "ETH",
+   "usdM": 75,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.33,
+   "ret1h": 0.00026810849457070685,
+   "ret4h": 0.00411099691675243
+  },
+  {
+   "time": "2026-10-30T14:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 54.9,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.006444320293112593,
+   "ret4h": 0.0037808411397092234
+  },
+  {
+   "time": "2026-10-30T14:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 51.9,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.006444320293112593,
+   "ret4h": 0.0037808411397092234
+  },
+  {
+   "time": "2026-10-30T09:45:00.000Z",
+   "coin": "HYPE",
+   "usdM": 22.8,
+   "to": "bybit",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.01715761369107538,
+   "ret4h": -0.0016413533505492683
+  },
+  {
+   "time": "2026-10-30T00:00:00.000Z",
+   "coin": "HYPE",
+   "usdM": 197.2,
+   "to": "binance",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.03169623782859965,
+   "ret4h": -0.04220917942836566
+  },
+  {
+   "time": "2026-10-29T23:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 51.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 11.24,
+   "ret1h": 0.013379069414206857,
+   "ret4h": 0.020353399827856777
+  },
+  {
+   "time": "2026-10-29T22:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 51.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 3.06,
+   "ret1h": 0.0036582278481012143,
+   "ret4h": 0.021430379746835482
+  },
+  {
+   "time": "2026-10-29T22:00:00.000Z",
+   "coin": "UNI",
+   "usdM": 46.8,
+   "to": "uniswap",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.012641488641551568,
+   "ret4h": -0.03135970781316422
+  },
+  {
+   "time": "2026-10-29T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 100.9,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -0.34,
+   "ret1h": 0.00025969850240525894,
+   "ret4h": 0.022791635234903462
+  },
+  {
+   "time": "2026-10-29T17:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 101.1,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 1.68,
+   "ret1h": 0.0022753409919992196,
+   "ret4h": 0.02087378040486232
+  },
+  {
+   "time": "2026-10-29T15:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 157.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -7.8,
+   "ret1h": -0.00719584021291797,
+   "ret4h": 0.0038936395672638513
+  },
+  {
+   "time": "2026-10-29T07:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 143.7,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -2.14,
+   "ret1h": -0.0015400217856740284,
+   "ret4h": -0.004069163254829755
+  },
+  {
+   "time": "2026-10-28T22:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 176.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.6,
+   "ret1h": -0.0009969598877497265,
+   "ret4h": 0.016394451487439565
+  },
+  {
+   "time": "2026-10-28T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 64.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.72,
+   "ret1h": -0.002115498812351513,
+   "ret4h": -0.006297011084718918
+  },
+  {
+   "time": "2026-10-28T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 137.6,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 1.79,
+   "ret1h": 0.0023914848270820688,
+   "ret4h": -0.005984907624251967
+  },
+  {
+   "time": "2026-10-28T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 142,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 1.79,
+   "ret1h": 0.0023914848270820688,
+   "ret4h": -0.005984907624251967
+  },
+  {
+   "time": "2026-10-28T10:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 60.3,
+   "to": "falconx",
+   "reason": "time exit",
+   "pnl": -0.02,
+   "ret1h": 0.0005765102729223814,
+   "ret4h": 0.009763876111622216
+  },
+  {
+   "time": "2026-10-28T00:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 274.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.61,
+   "ret1h": -0.000012382980831171508,
+   "ret4h": -0.00234038337708653
+  },
+  {
+   "time": "2026-10-27T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 82.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.74,
+   "ret1h": -0.0011431411530815616,
+   "ret4h": -0.0019010934393637324
+  },
+  {
+   "time": "2026-10-27T15:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 77.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.43,
+   "ret1h": -0.0018307263126431383,
+   "ret4h": -0.004333964331971751
+  },
+  {
+   "time": "2026-10-27T14:45:00.000Z",
+   "coin": "ETH",
+   "usdM": 70.8,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.008415267699969808,
+   "ret4h": -0.007599501953544419
+  },
+  {
+   "time": "2026-10-27T14:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 78.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.1,
+   "ret1h": -0.002503736920777211,
+   "ret4h": -0.003936223218734325
+  },
+  {
+   "time": "2026-10-27T14:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 124.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.1,
+   "ret1h": -0.002503736920777211,
+   "ret4h": -0.003936223218734325
+  },
+  {
+   "time": "2026-10-27T14:00:00.000Z",
+   "coin": "SOL",
+   "usdM": 66.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -6.6,
+   "ret1h": -0.005994604855629859,
+   "ret4h": -0.006793885503047159
+  },
+  {
+   "time": "2026-10-27T08:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 179.6,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 0.68,
+   "ret1h": 0.0012777471563861775,
+   "ret4h": -0.0011274239615173265
+  },
+  {
+   "time": "2026-10-27T08:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 159.7,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.36,
+   "ret1h": -0.0007645643236739996,
+   "ret4h": -0.0013787225508874457
+  },
+  {
+   "time": "2026-10-26T18:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 60.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 0.94,
+   "ret1h": 0.001534641729778241,
+   "ret4h": 0.0022458171655291848
+  },
+  {
+   "time": "2026-10-26T18:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 148.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 3,
+   "ret1h": 0.003602907259421806,
+   "ret4h": 0.003341104309775189
+  },
+  {
+   "time": "2026-10-26T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 127.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -4.16,
+   "ret1h": -0.0035545467017548127,
+   "ret4h": 0.0031679117973534288
+  },
+  {
+   "time": "2026-10-26T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 79.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -4.16,
+   "ret1h": -0.0035545467017548127,
+   "ret4h": 0.0031679117973534288
+  },
+  {
+   "time": "2026-10-26T14:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 73.7,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.007870966129858381,
+   "ret4h": -0.0013368148823726944
+  },
+  {
+   "time": "2026-10-26T12:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 80.3,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 2.18,
+   "ret1h": 0.002774667164364808,
+   "ret4h": 0.0023889511011571107
+  },
+  {
+   "time": "2026-10-23T17:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 66.9,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 0.41,
+   "ret1h": 0.0010052222521882426,
+   "ret4h": 0.002770490597494346
+  },
+  {
+   "time": "2026-10-23T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 81.2,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -3.37,
+   "ret1h": -0.0027703207933413854,
+   "ret4h": 0.002586449944225855
+  },
+  {
+   "time": "2026-10-23T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 64.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 0.44,
+   "ret1h": 0.0010417177312613823,
+   "ret4h": 0.002965831658414575
+  },
+  {
+   "time": "2026-10-23T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 155.7,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 0.44,
+   "ret1h": 0.0010417177312613823,
+   "ret4h": 0.002965831658414575
+  },
+  {
+   "time": "2026-10-23T15:15:00.000Z",
+   "coin": "ETH",
+   "usdM": 91.7,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.06,
+   "ret1h": -0.001459306204136146,
+   "ret4h": 0.002001334222815232
+  },
+  {
+   "time": "2026-10-23T07:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 81.7,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -0.03,
+   "ret1h": 0.0005745229625826465,
+   "ret4h": 0.002444778564181571
+  },
+  {
+   "time": "2026-10-23T07:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 235.6,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 3.3,
+   "ret1h": 0.0038953743955453257,
+   "ret4h": 0.0025399306403556254
+  },
+  {
+   "time": "2026-10-23T07:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 81.9,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 3.3,
+   "ret1h": 0.0038953743955453257,
+   "ret4h": 0.0025399306403556254
+  },
+  {
+   "time": "2026-10-23T00:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 73,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -3.85,
+   "ret1h": -0.003250711093051528,
+   "ret4h": -0.005898070505953479
+  },
+  {
+   "time": "2026-10-22T16:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 71.2,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 0.37,
+   "ret1h": 0.0009704205974843116,
+   "ret4h": 0.001498624213836508
+  },
+  {
+   "time": "2026-10-22T16:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 56.2,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 0.37,
+   "ret1h": 0.0009704205974843116,
+   "ret4h": 0.001498624213836508
+  },
+  {
+   "time": "2026-10-22T16:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 167.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 4.67,
+   "ret1h": 0.005263802178969268,
+   "ret4h": 0.0021912106745011206
+  },
+  {
+   "time": "2026-10-22T16:00:00.000Z",
+   "coin": "ETH",
+   "usdM": 146.3,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 8.43,
+   "ret1h": 0.007755493474544628,
+   "ret4h": 0.005170328983029715
+  },
+  {
+   "time": "2026-10-22T16:00:00.000Z",
+   "coin": "ETH",
+   "usdM": 124.4,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 8.43,
+   "ret1h": 0.007755493474544628,
+   "ret4h": 0.005170328983029715
+  },
+  {
+   "time": "2026-10-22T15:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 63.9,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 1.78,
+   "ret1h": 0.002381417615162862,
+   "ret4h": 0.006142836207317703
+  },
+  {
+   "time": "2026-10-22T14:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 81.7,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -2.79,
+   "ret1h": -0.0021908083960588964,
+   "ret4h": 0.006156293984456274
+  },
+  {
+   "time": "2026-10-22T13:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 50.9,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -1.69,
+   "ret1h": -0.0010909001765051496,
+   "ret4h": 0.005344185134340096
+  },
+  {
+   "time": "2026-10-22T12:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 54.3,
+   "to": "bitfinex",
+   "reason": "time exit",
+   "pnl": -0.7,
+   "ret1h": -0.00009775529406019778,
+   "ret4h": 0.0026027347043513505
+  },
+  {
+   "time": "2026-10-21T13:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 77.8,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -2.26,
+   "ret1h": -0.0016599789815610055,
+   "ret4h": -0.009434412916786039
+  },
+  {
+   "time": "2026-10-21T13:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 67.9,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -4.25,
+   "ret1h": -0.0036531758674795967,
+   "ret4h": -0.012217178310915289
+  },
+  {
+   "time": "2026-10-21T10:45:00.000Z",
+   "coin": "ETH",
+   "usdM": 58,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -2.96,
+   "ret1h": -0.0023586823912160604,
+   "ret4h": -0.009190727938186205
+  },
+  {
+   "time": "2026-10-21T10:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 239.9,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -1.97,
+   "ret1h": -0.001368448851223114,
+   "ret4h": -0.006878256067990307
+  },
+  {
+   "time": "2026-10-20T21:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 55.9,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -2.36,
+   "ret1h": -0.0017606695367990977,
+   "ret4h": 0.0013988881251281171
+  },
+  {
+   "time": "2026-10-20T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 50.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 2.8,
+   "ret1h": 0.0033940067397002505,
+   "ret4h": -0.0019808437911417176
+  },
+  {
+   "time": "2026-10-20T17:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 62.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 1.79,
+   "ret1h": 0.0023936459580023994,
+   "ret4h": -0.002212309143002189
+  },
+  {
+   "time": "2026-10-20T17:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 102.7,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 1.15,
+   "ret1h": 0.0017516519890310445,
+   "ret4h": -0.001739571630485992
+  },
+  {
+   "time": "2026-10-20T15:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 175.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.9,
+   "ret1h": -0.0012984648989746717,
+   "ret4h": -0.0012135185971724471
+  },
+  {
+   "time": "2026-10-20T15:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 97,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.9,
+   "ret1h": -0.0012984648989746717,
+   "ret4h": -0.0012135185971724471
+  },
+  {
+   "time": "2026-10-20T15:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 135.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.9,
+   "ret1h": -0.0012984648989746717,
+   "ret4h": -0.0012135185971724471
+  },
+  {
+   "time": "2026-10-20T15:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 175.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.9,
+   "ret1h": -0.0012984648989746717,
+   "ret4h": -0.0012135185971724471
+  },
+  {
+   "time": "2026-10-20T14:15:00.000Z",
+   "coin": "ETH",
+   "usdM": 72.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 10.89,
+   "ret1h": 0.012680792448243827,
+   "ret4h": 0.009318154195195105
+  },
+  {
+   "time": "2026-10-20T12:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 663.7,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 1.18,
+   "ret1h": 0.0017781156878855509,
+   "ret4h": -0.011245048867524199
+  },
+  {
+   "time": "2026-10-20T09:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 283.8,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -2.58,
+   "ret1h": -0.0019771340153011963,
+   "ret4h": 0.0003561297294641941
+  },
+  {
+   "time": "2026-10-20T09:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 62.7,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.01,
+   "ret1h": 0.0005888270075320445,
+   "ret4h": -0.0010059128045338817
+  },
+  {
+   "time": "2026-10-19T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 163.8,
+   "to": "binanceus",
+   "reason": "time exit",
+   "pnl": -1.02,
+   "ret1h": -0.0004151150723399333,
+   "ret4h": -0.0014773212868566254
+  },
+  {
+   "time": "2026-10-19T14:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 80.7,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.77,
+   "ret1h": -0.0031662140604260536,
+   "ret4h": 0.0037629236333523997
+  },
+  {
+   "time": "2026-10-19T14:15:00.000Z",
+   "coin": "ETH",
+   "usdM": 55.5,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.0024572071134063567,
+   "ret4h": 0.00016659031277332925
+  },
+  {
+   "time": "2026-10-17T23:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 104.1,
+   "to": "kraken",
+   "reason": "time exit",
+   "pnl": -2.09,
+   "ret1h": -0.0014880952380953438,
+   "ret4h": -0.007071526957890484
+  },
+  {
+   "time": "2026-10-17T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 13.6,
+   "to": "gemini",
+   "reason": "time exit",
+   "pnl": -2.01,
+   "ret1h": -0.0014135578636838009,
+   "ret4h": 0.0030975354925941723
+  },
+  {
+   "time": "2026-10-17T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 20.2,
+   "to": "gemini",
+   "reason": "time exit",
+   "pnl": -2.01,
+   "ret1h": -0.0014135578636838009,
+   "ret4h": 0.0030975354925941723
+  },
+  {
+   "time": "2026-10-16T17:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 234.3,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 2.02,
+   "ret1h": 0.002617093429006734,
+   "ret4h": -0.003698333906718476
+  },
+  {
+   "time": "2026-10-16T01:00:00.000Z",
+   "coin": "DOGE",
+   "usdM": 24.4,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 1.55,
+   "ret1h": 0.0021523626792612216,
+   "ret4h": -0.007994489951541173
+  },
+  {
+   "time": "2026-10-15T16:00:00.000Z",
+   "coin": "ETH",
+   "usdM": 60.3,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 1.98,
+   "ret1h": 0.0025819672131148774,
+   "ret4h": -0.004999999999999893
+  },
+  {
+   "time": "2026-10-15T14:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 99.9,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.015587973933649302,
+   "ret4h": -0.013502172195892559
+  },
+  {
+   "time": "2026-10-15T14:15:00.000Z",
+   "coin": "ETH",
+   "usdM": 72.8,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.02300160378154814,
+   "ret4h": -0.028952477420443934
+  },
+  {
+   "time": "2026-10-15T12:00:00.000Z",
+   "coin": "DOGE",
+   "usdM": 24.1,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 7.56,
+   "ret1h": 0.008161078508329367,
+   "ret4h": -0.014988973199267397
+  },
+  {
+   "time": "2026-10-15T11:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 232.9,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 0.13,
+   "ret1h": 0.0007283501018455762,
+   "ret4h": -0.010419109931485648
+  },
+  {
+   "time": "2026-10-14T16:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 235.2,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -5.28,
+   "ret1h": -0.004681200446062128,
+   "ret4h": -0.0025489258973321327
+  },
+  {
+   "time": "2026-10-14T14:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 50.2,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 1.45,
+   "ret1h": 0.0020531622364803326,
+   "ret4h": 0.0032997250229147568
+  },
+  {
+   "time": "2026-10-13T16:45:00.000Z",
+   "coin": "ETH",
+   "usdM": 56.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 4.09,
+   "ret1h": 0.00469054338752628,
+   "ret4h": 0.0021862702229995534
+  },
+  {
+   "time": "2026-10-10T10:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 58,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -0.7,
+   "ret1h": -0.00009659852445764727,
+   "ret4h": 0.0005071422534020931
+  },
+  {
+   "time": "2026-10-10T08:00:00.000Z",
+   "coin": "SOL",
+   "usdM": 51.7,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.06,
+   "ret1h": -0.00045491765990357536,
+   "ret4h": 0.0006368847238649167
+  },
+  {
+   "time": "2026-10-09T21:15:00.000Z",
+   "coin": "LINK",
+   "usdM": 34.9,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": 3.46,
+   "ret1h": 0.004060913705583702,
+   "ret4h": -0.0004685669660289271
+  },
+  {
+   "time": "2026-10-09T20:45:00.000Z",
+   "coin": "LINK",
+   "usdM": 25.5,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -5.38,
+   "ret1h": -0.004781313685530808,
+   "ret4h": -0.004232638344568107
+  },
+  {
+   "time": "2026-10-09T20:30:00.000Z",
+   "coin": "LINK",
+   "usdM": 25.6,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -4.99,
+   "ret1h": -0.004385621426893138,
+   "ret4h": -0.004228992090218542
+  },
+  {
+   "time": "2026-10-09T20:15:00.000Z",
+   "coin": "LINK",
+   "usdM": 51.1,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -2.64,
+   "ret1h": -0.002034428794992049,
+   "ret4h": -0.0032863849765258912
+  },
+  {
+   "time": "2026-10-09T20:00:00.000Z",
+   "coin": "LINK",
+   "usdM": 43.3,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -4.05,
+   "ret1h": -0.003452334248724931,
+   "ret4h": -0.004786190663005119
+  },
+  {
+   "time": "2026-10-09T14:30:00.000Z",
+   "coin": "ETH",
+   "usdM": 61.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 2.33,
+   "ret1h": 0.0029279640622491554,
+   "ret4h": 0.004171346061286552
+  },
+  {
+   "time": "2026-10-09T13:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 166,
+   "to": "bitfinex",
+   "reason": "time exit",
+   "pnl": -2.99,
+   "ret1h": -0.002387699728670478,
+   "ret4h": 0.0034850768766958584
+  },
+  {
+   "time": "2026-10-09T08:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 57.2,
+   "to": "okx",
+   "reason": "time exit",
+   "pnl": -1.08,
+   "ret1h": -0.0004841618553081961,
+   "ret4h": -0.007214011644092633
+  },
+  {
+   "time": "2026-10-08T19:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 62,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.83,
+   "ret1h": -0.003227785959744711,
+   "ret4h": -0.004675994108983783
+  },
+  {
+   "time": "2026-10-08T19:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 169.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.83,
+   "ret1h": -0.003227785959744711,
+   "ret4h": -0.004675994108983783
+  },
+  {
+   "time": "2026-10-08T19:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 169.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.83,
+   "ret1h": -0.003227785959744711,
+   "ret4h": -0.004675994108983783
+  },
+  {
+   "time": "2026-10-08T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 167.6,
+   "to": "coinbase institutional",
+   "reason": "stop",
+   "pnl": -9.6,
+   "ret1h": -0.009427651139742421,
+   "ret4h": -0.01170713577799809
+  },
+  {
+   "time": "2026-10-08T16:15:00.000Z",
+   "coin": "ETH",
+   "usdM": 88,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.47,
+   "ret1h": -0.0008668015024559939,
+   "ret4h": -0.019812605770421543
+  },
+  {
+   "time": "2026-10-08T15:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 269.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 14.64,
+   "ret1h": 0.02017489749265211,
+   "ret4h": 0.014465933693772137
+  },
+  {
+   "time": "2026-10-08T15:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 82.1,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 14.64,
+   "ret1h": 0.02017489749265211,
+   "ret4h": 0.014465933693772137
+  },
+  {
+   "time": "2026-10-08T14:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 246.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -6.86,
+   "ret1h": -0.006255781120685366,
+   "ret4h": 0.01757460688379342
+  },
+  {
+   "time": "2026-10-08T14:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 246.3,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -6.86,
+   "ret1h": -0.006255781120685366,
+   "ret4h": 0.01757460688379342
+  },
+  {
+   "time": "2026-10-08T14:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 759.9,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -6.86,
+   "ret1h": -0.006255781120685366,
+   "ret4h": 0.01757460688379342
+  },
+  {
+   "time": "2026-10-08T14:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 1005.9,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -6.86,
+   "ret1h": -0.006255781120685366,
+   "ret4h": 0.01757460688379342
+  },
+  {
+   "time": "2026-10-08T00:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 100.1,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.42,
+   "ret1h": 0.0001801693591976239,
+   "ret4h": 0.009080535703561377
+  },
+  {
+   "time": "2026-10-08T00:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 137,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.42,
+   "ret1h": 0.0001801693591976239,
+   "ret4h": 0.009080535703561377
+  },
+  {
+   "time": "2026-10-08T00:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 170.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.97,
+   "ret1h": -0.0003721399246117141,
+   "ret4h": 0.006890590862164148
+  },
+  {
+   "time": "2026-10-08T00:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 70,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.97,
+   "ret1h": -0.0003721399246117141,
+   "ret4h": 0.006890590862164148
+  },
+  {
+   "time": "2026-10-07T23:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 81.2,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 0.14,
+   "ret1h": 0.0007441458525870859,
+   "ret4h": 0.006037183287924464
+  },
+  {
+   "time": "2026-10-07T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 104.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.83,
+   "ret1h": -0.0032238274530560496,
+   "ret4h": -0.000012029206914343504
+  },
+  {
+   "time": "2026-10-07T18:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 99.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -3.83,
+   "ret1h": -0.0032238274530560496,
+   "ret4h": -0.000012029206914343504
+  },
+  {
+   "time": "2026-10-07T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 118.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.65,
+   "ret1h": -0.0000479047653265674,
+   "ret4h": -0.0003473095486172806
+  },
+  {
+   "time": "2026-10-07T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 116.9,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.65,
+   "ret1h": -0.0000479047653265674,
+   "ret4h": -0.0003473095486172806
+  },
+  {
+   "time": "2026-10-07T16:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 96.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -0.65,
+   "ret1h": -0.0000479047653265674,
+   "ret4h": -0.0003473095486172806
+  },
+  {
+   "time": "2026-10-07T16:15:00.000Z",
+   "coin": "ETH",
+   "usdM": 145.3,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -0.02,
+   "ret1h": 0.000583294447036864,
+   "ret4h": -0.0013999066728884735
+  },
+  {
+   "time": "2026-10-07T16:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 81.4,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 0.42,
+   "ret1h": 0.0010186472364699384,
+   "ret4h": 0.0003715066391831723
+  },
+  {
+   "time": "2026-10-07T15:45:00.000Z",
+   "coin": "DOGE",
+   "usdM": 27,
+   "to": "binance",
+   "reason": "time exit",
+   "pnl": -2.68,
+   "ret1h": -0.0020793779947563262,
+   "ret4h": -0.001570834463429982
+  },
+  {
+   "time": "2026-10-07T15:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 54.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.01,
+   "ret1h": -0.0014044775223576167,
+   "ret4h": -0.0015005101734588688
+  },
+  {
+   "time": "2026-10-07T14:00:00.000Z",
+   "coin": "ETH",
+   "usdM": 61.8,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 1.66,
+   "ret1h": 0.002257599937721233,
+   "ret4h": 0.007200965318594044
+  },
+  {
+   "time": "2026-10-07T13:45:00.000Z",
+   "coin": "ETH",
+   "usdM": 91.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.19,
+   "ret1h": -0.0005866478939340336,
+   "ret4h": 0.004536743713089986
+  },
+  {
+   "time": "2026-10-07T13:45:00.000Z",
+   "coin": "ETH",
+   "usdM": 104.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -1.19,
+   "ret1h": -0.0005866478939340336,
+   "ret4h": 0.004536743713089986
+  },
+  {
+   "time": "2026-10-07T12:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 209,
+   "to": "bitfinex",
+   "reason": "time exit",
+   "pnl": 1.31,
+   "ret1h": 0.0019053553667509604,
+   "ret4h": -0.0010665196706971525
+  },
+  {
+   "time": "2026-10-07T08:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 84.3,
+   "to": "robinhood",
+   "reason": "time exit",
+   "pnl": 1.65,
+   "ret1h": 0.002246950567087569,
+   "ret4h": 0.004803005444991348
+  },
+  {
+   "time": "2026-10-06T15:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 55.8,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 9.66,
+   "ret1h": 0.010210681944187727,
+   "ret4h": 0.012486139345777136
+  },
+  {
+   "time": "2026-10-06T14:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 85.6,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": 1.97,
+   "ret1h": 0.0025728093455561485,
+   "ret4h": 0.007787963424386035
+  },
+  {
+   "time": "2026-10-05T18:45:00.000Z",
+   "coin": "BTC",
+   "usdM": 65.2,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -1.91,
+   "ret1h": -0.0013084112149532867,
+   "ret4h": -0.0041588785046728916
+  },
+  {
+   "time": "2026-10-05T17:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 151.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": -2.23,
+   "ret1h": -0.0016298102853926633,
+   "ret4h": -0.005628121848838097
+  },
+  {
+   "time": "2026-10-05T15:30:00.000Z",
+   "coin": "BTC",
+   "usdM": 213.8,
+   "to": "bitfinex",
+   "reason": "time exit",
+   "pnl": 4.38,
+   "ret1h": 0.004980650290537958,
+   "ret4h": -0.0021045001227624205
+  },
+  {
+   "time": "2026-10-05T15:00:00.000Z",
+   "coin": "BTC",
+   "usdM": 68.5,
+   "to": "coinbase institutional",
+   "reason": "time exit",
+   "pnl": 3.86,
+   "ret1h": 0.004461834958827349,
+   "ret4h": -0.0003387256905915681
+  },
+  {
+   "time": "2026-10-05T11:15:00.000Z",
+   "coin": "BTC",
+   "usdM": 52.3,
+   "to": "coinbase",
+   "reason": "time exit",
+   "pnl": -2.94,
+   "ret1h": -0.002339385474860345,
+   "ret4h": 0.0047602420856610594
+  }
+ ]
+}

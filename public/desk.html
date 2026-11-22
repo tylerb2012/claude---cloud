@@ -1,0 +1,1647 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Venue Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one phone-width column of glowing panels (two columns on wide screens); a deliberate single dark terminal look. */
+:root {
+  --bg: #06070b;
+  --panel: #0d1017;
+  --panel-2: #131824;
+  --line: #1e2433;
+  --text: #e9edf5;
+  --muted: #7c8597;
+  --cyan: #2de2e6;
+  --violet: #8b5cf6;
+  --lime: #c6f135;
+  --up: #2fd57e;
+  --down: #ff4d6d;
+  --amber: #ffb020;
+  --liq: #ff2e63;
+  --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.4 var(--display); -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(60% 40% at 15% 0%, rgba(139, 92, 246, 0.16), transparent 70%),
+    radial-gradient(50% 35% at 100% 10%, rgba(45, 226, 230, 0.12), transparent 70%),
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px, 28px 28px;
+  background-attachment: fixed;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+.wrap {
+  max-width: 560px; margin: 0 auto;
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 40px;
+  display: grid; gap: 12px;
+}
+@media (min-width: 1040px) {
+  .wrap { max-width: 1180px; grid-template-columns: 1fr 1fr; align-items: start; }
+  .span2 { grid-column: 1 / -1; }
+}
+
+.top { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.mark {
+  width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #06070b; font-weight: 800;
+  background: conic-gradient(from 200deg, var(--lime), var(--cyan), var(--violet), var(--down), var(--lime));
+  box-shadow: 0 0 22px -2px rgba(45, 226, 230, 0.6);
+}
+.brand { font: 700 19px var(--display); letter-spacing: 0.04em; }
+.brand small { display: block; font: 600 10px var(--mono); color: var(--muted); letter-spacing: 0.08em; white-space: nowrap; }
+@media (max-width: 430px) { .brand small { display: none; } .brand { font-size: 17px; } }
+.pill { font: 800 10px var(--mono); letter-spacing: 0.14em; padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
+.paper { color: var(--amber); background: rgba(255, 176, 32, 0.12); border: 1px solid rgba(255, 176, 32, 0.4); }
+.top-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.clock { font: 600 13px var(--mono); padding: 5px 9px; border-radius: 9px; background: var(--panel-2); border: 1px solid var(--line); }
+.status { font: 800 10px var(--mono); letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; color: var(--muted); }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.status.on { color: var(--up); }
+.status.on i { background: var(--up); box-shadow: 0 0 10px var(--up); animation: blink 1.2s infinite; }
+@keyframes blink { 50% { opacity: 0.35; } }
+
+.panel {
+  position: relative; background: linear-gradient(180deg, rgba(19, 24, 36, 0.92), rgba(13, 16, 23, 0.92));
+  border: 1px solid var(--line); border-radius: 18px; padding: 14px; min-width: 0;
+}
+.panel h2 { margin: 0; font: 700 11px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+
+/* Equity hero */
+.hero { overflow: hidden; }
+.hero::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(120deg, var(--cyan), var(--violet), var(--down), var(--lime)); background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: sheen 8s linear infinite;
+}
+@keyframes sheen { to { background-position: 300% 0; } }
+.hero-row { display: grid; grid-template-columns: 1fr 140px; gap: 10px; align-items: end; }
+.equity { font: 800 44px/1 var(--mono); letter-spacing: -0.04em; }
+.equity .cents { color: var(--muted); }
+.chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.chip { font: 700 12px var(--mono); padding: 4px 9px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); }
+.chip.up { background: rgba(47, 213, 126, 0.12); border-color: rgba(47, 213, 126, 0.35); }
+.chip.down { background: rgba(255, 77, 109, 0.12); border-color: rgba(255, 77, 109, 0.35); }
+#spark { width: 100%; height: 64px; display: block; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
+.stat { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
+.stat b { display: block; font: 800 17px var(--mono); }
+.stat span { font: 600 9px var(--mono); color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* Controls */
+.ctrl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn {
+  min-height: 42px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2);
+  font-weight: 700; cursor: pointer;
+}
+.btn.go { flex: 1; border: 0; color: #06070b; background: linear-gradient(90deg, var(--lime), var(--cyan)); box-shadow: 0 6px 24px -10px var(--cyan); }
+.seg { display: flex; padding: 3px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); }
+.seg button { border: 0; background: none; padding: 0 11px; min-height: 34px; border-radius: 9px; cursor: pointer; font: 700 13px var(--mono); color: var(--muted); }
+.seg button.on { background: var(--panel); color: var(--text); box-shadow: 0 0 0 1px var(--line); }
+.slider { display: grid; gap: 4px; margin-top: 12px; }
+.slider label { display: flex; justify-content: space-between; font: 600 12px var(--mono); }
+.slider input { width: 100%; accent-color: var(--cyan); }
+.slider .hint { font-size: 11px; color: var(--muted); }
+.toggles { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.tog {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; cursor: pointer;
+  background: var(--panel-2); border: 1px solid var(--line); font: 700 12px var(--mono);
+}
+.tog i { width: 26px; height: 15px; border-radius: 999px; background: var(--line); position: relative; transition: background 160ms; }
+.tog i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--muted); transition: transform 160ms, background 160ms; }
+.tog[aria-pressed="true"] i { background: rgba(45, 226, 230, 0.35); }
+.tog[aria-pressed="true"] i::after { transform: translateX(11px); background: var(--cyan); }
+
+/* Pipeline */
+.stage { margin-top: 10px; }
+.stage-name { font: 700 10px var(--mono); letter-spacing: 0.14em; color: var(--violet); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.stage-name::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+.agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.agent {
+  position: relative; padding: 8px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); min-width: 0;
+  transition: border-color 200ms, box-shadow 200ms, transform 200ms;
+}
+.agent .nm { display: flex; align-items: flex-start; gap: 5px; font: 800 10px/1.25 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; min-height: 25px; }
+.agent .nm .led { margin-top: 3px; }
+.agent .st { font: 500 10px/1.3 var(--mono); color: var(--muted); margin-top: 3px; min-height: 26px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.agent .led { width: 7px; height: 7px; border-radius: 50%; background: var(--line); flex: none; }
+.agent.active { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan), 0 0 22px -6px var(--cyan); transform: translateY(-1px); }
+.agent.active .led { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.agent.ok .led { background: var(--up); }
+.agent.warn .led { background: var(--amber); }
+.agent.bad .led, .agent.block .led { background: var(--down); }
+.agent.block { border-color: var(--down); box-shadow: 0 0 18px -8px var(--down); }
+.flow { height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 12px; }
+.flow span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--violet), var(--cyan)); transition: width 200ms; box-shadow: 0 0 10px var(--cyan); }
+
+/* Chart */
+.sym { display: flex; align-items: center; gap: 8px; font: 800 15px var(--mono); }
+.sym em { font-style: normal; font-size: 11px; color: var(--muted); font-weight: 600; }
+.posbox { display: flex; gap: 6px; align-items: center; font: 700 11px var(--mono); }
+.side { padding: 3px 8px; border-radius: 6px; background: rgba(255, 77, 109, 0.15); color: var(--down); border: 1px solid rgba(255, 77, 109, 0.4); }
+#chart { width: 100%; height: 280px; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 600 10px var(--mono); color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 12px; height: 2px; margin-right: 5px; vertical-align: 3px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
+.tabs button { flex: none; border: 1px solid var(--line); background: var(--panel-2); border-radius: 999px; padding: 6px 12px; font: 700 11px var(--mono); cursor: pointer; color: var(--muted); }
+.tabs button.on { color: var(--text); border-color: var(--cyan); box-shadow: 0 0 14px -6px var(--cyan); }
+.list { list-style: none; margin: 0; padding: 0; font: 500 12px var(--mono); max-height: 300px; overflow-y: auto; }
+.list li { display: grid; gap: 8px; padding: 7px 2px; border-bottom: 1px solid var(--line); align-items: center; }
+.feed li { grid-template-columns: 1fr auto; }
+.feed .tag { font: 800 9px var(--mono); padding: 2px 6px; border-radius: 5px; background: var(--panel-2); color: var(--muted); }
+.feed .tag.pass { color: var(--up); }
+.feed .tag.squeeze, .feed .tag.news { color: var(--down); }
+.fills li { grid-template-columns: 38px 46px 1fr auto; }
+.trades li { grid-template-columns: 46px 1fr auto; }
+.book { display: grid; gap: 2px; font: 600 12px var(--mono); }
+.book .lvl { position: relative; display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; overflow: hidden; }
+.book .lvl i { position: absolute; top: 0; bottom: 0; right: 0; opacity: 0.18; }
+.book .ask { color: var(--down); }
+.book .ask i { background: var(--down); }
+.book .bid { color: var(--up); }
+.book .bid i { background: var(--up); }
+.book .mid { text-align: center; padding: 6px; font-weight: 800; color: var(--text); border-block: 1px dashed var(--line); }
+
+.live-pill { color: var(--up); background: rgba(47, 213, 126, 0.12); border: 1px solid rgba(47, 213, 126, 0.4); }
+.vs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vs .stat b { font-size: 20px; }
+.vs .stat.sig { border-color: rgba(45, 226, 230, 0.5); }
+.real-table { width: 100%; border-collapse: collapse; font: 500 12px var(--mono); margin-top: 10px; }
+.real-table th, .real-table td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+.real-table th:first-child, .real-table td:first-child { text-align: left; color: var(--muted); font-weight: 600; }
+.real-table th { color: var(--muted); font-weight: 700; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.table-wrap { overflow-x: auto; }
+.bars2 { display: grid; gap: 6px; margin-top: 10px; }
+.bars2 .row { display: grid; grid-template-columns: 92px 1fr 70px; gap: 8px; align-items: center; font: 600 11px var(--mono); }
+.bars2 .track { position: relative; height: 12px; background: var(--panel-2); border-radius: 6px; }
+.bars2 .track i { position: absolute; top: 0; bottom: 0; border-radius: 6px; }
+.bars2 .track .zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--muted); left: 50%; }
+.verdict-box { margin-top: 12px; padding: 12px; border-radius: 12px; font-size: 13px; line-height: 1.55; background: rgba(255, 77, 109, 0.08); border: 1px solid rgba(255, 77, 109, 0.35); }
+.verdict-box.good { background: rgba(47, 213, 126, 0.08); border-color: rgba(47, 213, 126, 0.35); }
+.verdict-box.flat { background: var(--panel-2); border-color: var(--line); }
+.real-trades li { grid-template-columns: 82px 44px 1fr auto; }
+.wallet-row { display: flex; gap: 8px; margin-top: 8px; }
+.wallet-row input { flex: 1; min-width: 0; min-height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font: 13px var(--mono); }
+.wallet-big { font: 800 30px var(--mono); letter-spacing: -0.03em; }
+.hint-line { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
+.agent { cursor: pointer; text-align: left; font: inherit; color: inherit; width: 100%; }
+.agent:hover { border-color: rgba(45, 226, 230, 0.5); }
+.agent.off { opacity: 0.45; border-style: dashed; }
+.botlist li { grid-template-columns: 26px 1fr auto; cursor: pointer; }
+.botlist li:hover { background: var(--panel-2); }
+.sheet-bg { position: fixed; inset: 0; z-index: 70; background: rgba(3, 4, 8, 0.7); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  width: min(560px, 100%); max-height: 90vh; overflow-y: auto; border-radius: 22px 22px 0 0;
+  background: linear-gradient(180deg, #151a27, #0d1017); border: 1px solid var(--line); border-bottom: 0;
+  padding: 10px 18px calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px;
+  animation: rise 240ms ease-out;
+}
+@keyframes rise { from { transform: translateY(30px); opacity: 0; } }
+.sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto; }
+.sheet h3 { margin: 0; font: 700 22px var(--display); display: flex; align-items: center; gap: 10px; }
+.sheet .bot-ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; background: var(--panel-2); border: 1px solid var(--cyan); box-shadow: 0 0 20px -6px var(--cyan); }
+.sheet p { margin: 0; line-height: 1.5; }
+.sheet .lbl { font: 700 10px var(--mono); letter-spacing: 0.14em; color: var(--violet); text-transform: uppercase; }
+.sheet .log { list-style: none; margin: 0; padding: 0; font: 500 12px var(--mono); display: grid; gap: 4px; }
+.sheet .log li { padding: 6px 8px; border-radius: 8px; background: var(--panel-2); }
+.sheet .log li.ok { color: var(--up); }
+.sheet .log li.bad, .sheet .log li.block { color: var(--down); }
+.sheet .log li.warn { color: var(--amber); }
+.shadow-box { padding: 12px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); font-size: 13px; line-height: 1.5; }
+.sheet .close { width: 100%; }
+@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+
+/* Reality check */
+#hist { width: 100%; height: 150px; display: block; margin-top: 10px; }
+.rc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+.verdict { margin: 10px 0 0; font-size: 13px; line-height: 1.5; }
+.empty { color: var(--muted); font: 500 12px var(--mono); padding: 8px 0; }
+
+.banner { display: none; }
+.banner.show { display: block; border-color: var(--amber); box-shadow: 0 0 30px -12px var(--amber); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50;
+  padding: 10px 16px; border-radius: 999px; font: 700 13px var(--mono); white-space: nowrap; max-width: calc(100% - 28px); overflow: hidden; text-overflow: ellipsis;
+  background: var(--panel-2); border: 1px solid var(--line); box-shadow: 0 10px 30px -10px #000;
+  animation: drop 260ms ease-out;
+}
+.toast.ok { border-color: var(--up); color: var(--up); }
+.toast.bad { border-color: var(--down); color: var(--down); }
+.toast.block { border-color: var(--amber); color: var(--amber); }
+@keyframes drop { from { opacity: 0; transform: translate(-50%, 10px); } }
+.flash { position: fixed; inset: 0; pointer-events: none; z-index: 40; background: radial-gradient(circle, transparent 40%, rgba(255, 46, 99, 0.35)); animation: fade 700ms ease-out forwards; }
+@keyframes fade { to { opacity: 0; } }
+canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 60; }
+.foot { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.foot strong { color: var(--text); }
+
+@media (max-width: 380px) {
+  .equity { font-size: 36px; }
+  .hero-row { grid-template-columns: 1fr 110px; }
+  .agents { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero::before, .status.on i, .toast, .flash { animation: none; }
+  .agent, .flow span { transition: none; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top span2">
+    <span class="mark" aria-hidden="true">◆</span>
+    <div class="brand">VENUE DESK<small>11 AGENTS · PERP SHORTS</small></div>
+    <span class="pill paper" title="Simulated prices and play money. No exchange, no real orders.">PAPER</span>
+    <div class="top-right">
+      <span class="status" id="status"><i></i><span>PAUSED</span></span>
+      <span class="clock" id="clock">00:00</span>
+    </div>
+  </header>
+
+  <section class="panel hero" aria-label="Paper equity">
+    <div class="head"><h2>Paper equity</h2><span class="pill paper">SIMULATED</span></div>
+    <div class="hero-row">
+      <div>
+        <div class="equity" id="equity">$1,000<span class="cents">.00</span></div>
+        <div class="chips"><span class="chip" id="pnl">+$0.00</span><span class="chip" id="ret">+0.00%</span><span class="chip" id="seed">seed 1</span></div>
+      </div>
+      <canvas id="spark" aria-label="Equity curve"></canvas>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="s-trades">0</b><span>Trades</span></div>
+      <div class="stat"><b id="s-win">0%</b><span>Win rate</span></div>
+      <div class="stat"><b id="s-block">0</b><span>Blocked</span></div>
+      <div class="stat"><b id="s-liq">0</b><span>Liquidated</span></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Controls">
+    <div class="ctrl-row">
+      <button class="btn go" id="go">▶ Start</button>
+      <div class="seg" role="group" aria-label="Speed">
+        <button data-speed="1" class="on" aria-pressed="true">1×</button>
+        <button data-speed="3" aria-pressed="false">3×</button>
+        <button data-speed="10" aria-pressed="false">10×</button>
+      </div>
+      <button class="btn" id="reset" title="New session">↺</button>
+    </div>
+    <div class="slider">
+      <label for="lev"><span>Leverage</span><span id="lev-v">10×</span></label>
+      <input id="lev" type="range" min="1" max="20" step="1" value="10">
+      <span class="hint" id="lev-h">Liquidation about 9.5% above entry.</span>
+    </div>
+    <div class="slider">
+      <label for="edge"><span>Assumed signal edge</span><span id="edge-v">0.000%/bar</span></label>
+      <input id="edge" type="range" min="0" max="50" step="1" value="0">
+      <span class="hint">0 means the wallet monitor predicts nothing, which is all anyone has shown. Raise it to see how much edge the setup would need.</span>
+    </div>
+    <div class="toggles" id="quick" aria-label="Bot switches"></div>
+    <p class="hint-line">Tap any bot in the pipeline to open its page: what it does, its settings and its scoreboard.</p>
+  </section>
+
+  <section class="panel banner span2" id="banner" aria-live="polite">
+    <div class="head"><h2>Session over</h2><span class="pill paper">SIMULATED</span></div>
+    <p id="banner-text" class="verdict"></p>
+    <button class="btn go" id="again" style="margin-top:10px">Run another session</button>
+  </section>
+
+  <section class="panel" aria-label="Agent pipeline">
+    <div class="head"><h2>Agent pipeline</h2><span class="mono muted" id="sig-count" style="font-size:11px">0 / 40 signals</span></div>
+    <div id="pipeline"></div>
+    <div class="flow" aria-hidden="true"><span id="flow"></span></div>
+  </section>
+
+  <section class="panel" aria-label="Price chart">
+    <div class="head">
+      <div class="sym"><span id="sym">—</span><em>1m · simulated</em></div>
+      <div class="posbox" id="posbox"><span class="muted">FLAT</span></div>
+    </div>
+    <canvas id="chart" aria-label="Candlestick chart of the simulated price"></canvas>
+    <div class="legend">
+      <span><i style="background:var(--cyan)"></i>entry</span>
+      <span><i style="background:var(--up)"></i>take-profit 1 / 2</span>
+      <span><i style="background:var(--amber)"></i>stop</span>
+      <span><i style="background:var(--liq)"></i>liquidation</span>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Desk feeds">
+    <div class="tabs" role="tablist">
+      <button class="on" data-tab="feed" role="tab" aria-selected="true">Wallet monitor</button>
+      <button data-tab="book" role="tab" aria-selected="false">Order book</button>
+      <button data-tab="fills" role="tab" aria-selected="false">Fills</button>
+      <button data-tab="trades" role="tab" aria-selected="false">Trades</button>
+      <button data-tab="bots" role="tab" aria-selected="false">Bots</button>
+    </div>
+    <div id="tab-body"></div>
+  </section>
+
+  <section class="panel span2" aria-label="Real-data test" id="real">
+    <div class="head"><h2>Real-data test</h2><span class="pill live-pill">REAL PRICES · PAPER</span></div>
+    <div id="real-body"><p class="empty">Loading results…</p></div>
+  </section>
+
+  <section class="panel" aria-label="Your wallet, read-only">
+    <div class="head"><h2>Your wallet</h2><span class="pill live-pill">READ-ONLY</span></div>
+    <div id="wallet-body"></div>
+  </section>
+
+  <section class="panel" aria-label="Reality check">
+    <div class="head"><h2>Reality check</h2><span class="pill paper">1,000 SESSIONS</span></div>
+    <p class="verdict muted" style="margin-top:0">Runs 1,000 simulated sessions of 40 signals with your current leverage, edge and gates, and shows how they end.</p>
+    <button class="btn go" id="rc-go" style="width:100%">Run reality check</button>
+    <div id="rc-out"></div>
+  </section>
+
+  <footer class="foot span2">
+    <p><strong>Everything here is simulated.</strong> Prices are a random walk generated in your browser. The wallets, transfers, order book and funding are made up. The live desk above is simulated. The Real-data test uses real Whale Alert transfers and real Hyperliquid prices, traded on paper only. Nothing ever places an order, and the wallet panel can only read a balance. Each bot really acts: gates block signals, Liq Mapper moves take-profit 2, Sizer cuts size, Executor can miss fills. The gates can only help because this simulator assumes risk-on markets drift up, crowded shorts get squeezed and headlines cause jumps. Those are assumptions, not measurements. Post-only entries and take-profits pay a 0.015% maker fee; stops, time exits and liquidations pay 0.045% taker.</p>
+    <div id="sheet-root"></div>
+    <p>Posts that show a bot's best trades with real-looking dollar amounts are marketing. A bot that really front-ran insider selling would not be sold to strangers.</p>
+  </footer>
+</div>
+
+<script>
+/**
+ * Paper trading desk engine. Eleven bots pass each signal down a pipeline and
+ * manage leveraged shorts on simulated perpetual futures. Prices are a random
+ * walk; nothing here reads a real market or places a real order.
+ *
+ * Kept free of DOM and imports so the page can inline it and tests can import it.
+ */
+
+const ASSETS = [
+  { sym: 'SOL', price: 71.3, dec: 2 },
+  { sym: 'ETH', price: 2410, dec: 1 },
+  { sym: 'BTC', price: 64200, dec: 0 },
+  { sym: 'XRP', price: 0.9947, dec: 4 },
+  { sym: 'DOGE', price: 0.1421, dec: 4 },
+  { sym: 'AVAX', price: 23.4, dec: 2 },
+];
+
+const ENTITIES = ['Fund', 'VC wallet', 'Team wallet', 'Market maker', 'Early investor', 'Dev wallet', 'Treasury'];
+const EXCHANGES = ['an exchange', 'a CEX deposit address', 'an OTC desk'];
+
+const DEFAULTS = {
+  startEquity: 1000,
+  leverage: 10,
+  /** Sizer: share of equity put up as margin per trade (isolated margin). */
+  marginPct: 0.1,
+  /** Post-only entries and take-profits pay maker; stops, time exits and liquidations pay taker. */
+  makerFee: 0.00015,
+  takerFee: 0.00045,
+  barVol: 0.003,
+  /**
+   * Assumed edge of the wallet-monitor signal: per-bar downward drift while a short is open.
+   * 0 = the signal predicts nothing. An assumption to explore, never a measured fact.
+   */
+  edgePerBar: 0,
+  gapChance: 0.012,
+  gapMin: 0.006,
+  gapMax: 0.05,
+  /** ASSUMPTION: crowded shorts get squeezed (upward gaps) more often. */
+  squeezeChance: 0.03,
+  newsRiskRate: 0.12,
+  /** ASSUMPTION: a pending headline causes more gaps. */
+  newsGapChance: 0.03,
+  /** ASSUMPTION: risk-on markets drift up this much per bar, risk-off down. */
+  regimeDrift: 0.00008,
+  /** Wallet Monitor: ignore transfers smaller than this, in $M. */
+  minAlertUsdM: 2,
+  /** Macro Scout: skip shorts when risk-on and the VIX is below this. */
+  macroVixMin: 15,
+  /** Funding Watch: crowded when funding per bar is at or below this and open interest grew at least crowdOi. */
+  crowdFunding: -0.00002,
+  crowdOi: 0.05,
+  /** Liq Mapper: use the long-liquidation cluster as TP2 when it is within this distance. */
+  liqTargetMax: 0.04,
+  /** Executor: chance per bar that a post-only order fills, and bars to wait before giving up. */
+  postOnlyFill: 0.6,
+  postOnlyWaitBars: 3,
+  tp1: 0.01,
+  tp2: 0.022,
+  stop: 0.009,
+  trail: 0.009,
+  maxBars: 60,
+  maintenance: 0.005,
+  fundingSd: 0.00002,
+  signalsPerSession: 40,
+  idleMin: 3,
+  idleMax: 10,
+  historyBars: 40,
+};
+
+/** On/off switches for the bots that have one. */
+const DEFAULT_TOGGLES = {
+  monitorFilter: true,
+  macroGate: true,
+  liqTarget: true,
+  squeezeGate: true,
+  newsFilter: true,
+  sizerCut: true,
+};
+
+function createRng(seed) {
+  let a = seed >>> 0;
+  let spare = null;
+  const next = () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  return {
+    next,
+    range: (lo, hi) => lo + (hi - lo) * next(),
+    int: (n) => Math.floor(next() * n),
+    pick: (arr) => arr[Math.floor(next() * arr.length)],
+    normal() {
+      if (spare !== null) { const s = spare; spare = null; return s; }
+      let u = 0;
+      while (u === 0) u = next();
+      const v = next();
+      const r = Math.sqrt(-2 * Math.log(u));
+      spare = r * Math.sin(2 * Math.PI * v);
+      return r * Math.cos(2 * Math.PI * v);
+    },
+  };
+}
+
+/**
+ * The bots, in pipeline order. `job` is what the bot is for; `rule` is exactly
+ * what it does in this simulator. `toggle` names its on/off switch, `gate` marks
+ * bots that can block a signal.
+ */
+const AGENTS = [
+  { id: 'monitor', name: 'Wallet Monitor', stage: 'Signal', icon: '👁', gate: true, toggle: 'monitorFilter',
+    job: 'Watches fund, VC and team wallets. A big transfer to an exchange is the signal to short.',
+    rule: 'Turns every transfer into a signal, but ignores ones smaller than the minimum size.' },
+  { id: 'macro', name: 'Macro Scout', stage: 'Scan', icon: '🌐', gate: true, toggle: 'macroGate',
+    job: 'Reads the Nasdaq and the VIX.',
+    rule: 'Skips shorts when the market is risk-on and the VIX is below the threshold. In this simulator risk-on markets drift up slightly, which hurts shorts.' },
+  { id: 'liq', name: 'Liq Mapper', stage: 'Scan', icon: '🧲', toggle: 'liqTarget',
+    job: 'Finds where leveraged longs are stacked.',
+    rule: 'Moves take-profit 2 to the long-liquidation cluster when it sits between 1.5% and 4% below entry.' },
+  { id: 'funding', name: 'Funding Watch', stage: 'Scan', icon: '⏱',
+    job: 'Tracks funding and open interest.',
+    rule: 'Flags the short as crowded when funding is negative enough and open interest jumped 5% or more. Squeeze Gate acts on the flag.' },
+  { id: 'squeeze', name: 'Squeeze Gate', stage: 'Risk gate', icon: '🚧', gate: true, toggle: 'squeezeGate',
+    job: 'Blocks crowded shorts.',
+    rule: 'Blocks any signal Funding Watch flags as crowded. In this simulator crowded shorts get squeezed (sudden jumps up) more often.' },
+  { id: 'news', name: 'News Filter', stage: 'Risk gate', icon: '📰', gate: true, toggle: 'newsFilter',
+    job: 'Checks headlines before entry.',
+    rule: 'Blocks entries while a headline is pending. In this simulator those trades see more sudden jumps.' },
+  { id: 'sizer', name: 'Sizer', stage: 'Size & execute', icon: '⚖', toggle: 'sizerCut',
+    job: 'Sets margin and leverage.',
+    rule: 'Puts a share of equity up as margin at your leverage. Halves it when a warning got past a gate that was switched off.' },
+  { id: 'exec', name: 'Executor', stage: 'Size & execute', icon: '⚡',
+    job: 'Opens the short with a post-only order (paper only, no exchange).',
+    rule: 'A post-only order fills on a bar 60% of the time. After 3 bars without a fill the trade is missed. Pays the maker fee.' },
+  { id: 'tp', name: 'TP Manager', stage: 'Exit', icon: '🎯',
+    job: 'Takes profit in two steps.',
+    rule: 'Closes half at take-profit 1 and the rest at take-profit 2. Both are limit orders that pay the maker fee.' },
+  { id: 'stopguard', name: 'Stop Guard', stage: 'Exit', icon: '🛡',
+    job: 'Trails every stop.',
+    rule: 'Starts with a stop above entry, moves it to breakeven after take-profit 1, then trails it above the lowest price. Stops fill at the bar’s open if price jumps past them.' },
+  { id: 'scribe', name: 'Scribe', stage: 'Log', icon: '📜',
+    job: 'Logs every fill.',
+    rule: 'Records each trade with its fees, funding and result, and keeps every bot’s scoreboard.' },
+];
+
+function hex(rng, n) {
+  let s = '';
+  for (let i = 0; i < n; i++) s += '0123456789abcdef'[rng.int(16)];
+  return s;
+}
+
+/** One OHLC bar. Pure: depends only on its inputs and the rng. */
+function makeBar(prev, drift, sig, rng, c) {
+  let o = prev;
+  if (rng.next() < c.gapChance) o *= 1 + (rng.next() < 0.5 ? 1 : -1) * rng.range(c.gapMin, c.gapMax);
+  if (sig) {
+    if (sig.crowded && rng.next() < c.squeezeChance) o *= 1 + rng.range(c.gapMin, c.gapMax);
+    if (sig.newsRisk && rng.next() < c.newsGapChance) o *= 1 + rng.range(c.gapMin, c.gapMax);
+  }
+  const v = c.barVol;
+  const cl = o * Math.exp(drift + v * rng.normal() - (v * v) / 2);
+  const h = Math.max(o, cl) * Math.exp(Math.abs(rng.normal()) * v * 0.6);
+  const l = Math.min(o, cl) * Math.exp(-Math.abs(rng.normal()) * v * 0.6);
+  const vol = Math.round(rng.range(20, 100) * (1 + Math.abs(cl - o) / o / v));
+  return { o, h, l, c: cl, vol };
+}
+
+/** Per-bar drift while short: the assumed edge plus the market regime. */
+function shortDrift(sig, c) {
+  return -c.edgePerBar + (sig.regime === 'risk-on' ? c.regimeDrift : -c.regimeDrift);
+}
+
+function newPosition(sig, entry, margin, c) {
+  const notional = margin * c.leverage;
+  const liq = entry * (1 + 1 / c.leverage - c.maintenance);
+  const fee = notional * c.makerFee;
+  return {
+    sig, entry, margin, notional, lev: c.leverage,
+    qty: notional / entry, qtyOpen: notional / entry,
+    stop: Math.min(entry * (1 + c.stop), liq * 0.999),
+    liq,
+    tp1: entry * (1 - c.tp1),
+    tp2: entry * (1 - (sig.tp2Pct ?? c.tp2)),
+    tp1Done: false, bars: 0,
+    realized: -fee, fees: fee, funding: 0, exits: [],
+    id: 0, openIndex: 0,
+  };
+}
+
+/**
+ * Runs Stop Guard and TP Manager on one bar. Mutates the position and returns
+ * what happened: { exits: [{ kind, price, qty, pnl }], closed: reason | null, moved: string | null }.
+ * Adverse moves are checked first (conservative): a gap at the open, then the high.
+ */
+function manageBar(p, bar, c) {
+  /** @type {{ exits: { kind: string, price: number, qty: number, pnl: number }[], closed: string | null, moved: string | null }} */
+  const out = { exits: [], closed: null, moved: null };
+  p.bars++;
+  const fund = p.sig.funding * p.qtyOpen * bar.o; // shorts receive positive funding, pay negative
+  p.realized += fund;
+  p.funding += fund;
+  const close = (frac, price, kind, feeRate) => {
+    const qty = p.qty * frac;
+    const pnl = kind === 'liq' ? -p.margin * frac : qty * (p.entry - price);
+    const f = qty * price * feeRate;
+    p.qtyOpen -= qty;
+    p.realized += pnl - f;
+    p.fees += f;
+    p.exits.push({ kind, price, qty });
+    out.exits.push({ kind, price, qty, pnl: pnl - f });
+  };
+  const rest = () => p.qtyOpen / p.qty;
+  if (bar.o >= p.liq || (bar.h >= p.liq && p.stop >= p.liq)) {
+    close(rest(), p.liq, 'liq', c.takerFee);
+    out.closed = 'liquidated';
+    return out;
+  }
+  if (bar.o >= p.stop) {
+    close(rest(), bar.o, p.tp1Done ? 'trail' : 'stop', c.takerFee);
+    out.closed = p.tp1Done ? 'trailing stop' : 'stop (gapped)';
+    return out;
+  }
+  if (bar.h >= p.stop) {
+    close(rest(), p.stop, p.tp1Done ? 'trail' : 'stop', c.takerFee);
+    out.closed = p.tp1Done ? 'trailing stop' : 'stop';
+    return out;
+  }
+  if (!p.tp1Done && bar.l <= p.tp1) {
+    close(0.5, p.tp1, 'tp1', c.makerFee);
+    p.tp1Done = true;
+    p.stop = Math.min(p.stop, p.entry);
+    out.moved = 'stop moved to breakeven';
+  }
+  if (p.tp1Done && bar.l <= p.tp2) {
+    close(rest(), p.tp2, 'tp2', c.makerFee);
+    out.closed = 'take-profit 2';
+    return out;
+  }
+  if (p.tp1Done) {
+    const trailed = Math.min(p.stop, bar.l * (1 + c.trail));
+    if (trailed < p.stop) {
+      p.stop = trailed;
+      out.moved = out.moved ?? `trailing stop @ ${trailed.toPrecision(5)}`;
+    }
+  }
+  if (p.bars >= c.maxBars) {
+    close(rest(), bar.c, 'time', c.takerFee);
+    out.closed = 'time exit';
+  }
+  return out;
+}
+
+function emptyStats() {
+  /** @type {Record<string, { runs: number, acted: number, blocked: number, shadowPnl: number, shadowN: number, log: { text: string, tone: string | null }[] }>} */
+  const s = {};
+  for (const a of AGENTS) s[a.id] = { runs: 0, acted: 0, blocked: 0, shadowPnl: 0, shadowN: 0, log: [] };
+  return s;
+}
+
+class Desk {
+  /**
+   * @param {Partial<typeof DEFAULTS>} [cfg]
+   * @param {number} [seed]
+   * @param {Partial<typeof DEFAULT_TOGGLES>} [toggles]
+   */
+  constructor(cfg = {}, seed = 1, toggles = {}) {
+    this.cfg = { ...DEFAULTS, ...cfg };
+    this.seed = seed;
+    this.rng = createRng(seed);
+    this.toggles = { ...DEFAULT_TOGGLES, ...toggles };
+    this.equity = this.cfg.startEquity;
+    this.equityHistory = [this.equity];
+    this.signals = 0;
+    /** @type {any[]} */
+    this.trades = [];
+    /** @type {Record<string, number>} */
+    this.blocked = { monitor: 0, macro: 0, squeeze: 0, news: 0 };
+    this.missed = 0;
+    this.liquidations = 0;
+    this.feesPaid = 0;
+    this.fundingNet = 0;
+    /** @type {any[]} */
+    this.feed = [];
+    /** @type {any[]} */
+    this.fills = [];
+    /** @type {any} */
+    this.chart = null;
+    /** @type {any} */
+    this.position = null;
+    /** @type {any} */
+    this.state = { kind: 'idle', wait: 2 };
+    this.busted = false;
+    this.nextTradeId = 1;
+    this.bots = emptyStats();
+  }
+
+  get done() {
+    return this.busted || (this.signals >= this.cfg.signalsPerSession && this.state.kind === 'idle');
+  }
+
+  get totalBlocked() {
+    return this.blocked.monitor + this.blocked.macro + this.blocked.squeeze + this.blocked.news;
+  }
+
+  /** Records a bot decision for its scoreboard and returns the UI event. */
+  say(id, text, tone = null, acted = false) {
+    const b = this.bots[id];
+    b.runs++;
+    if (acted) b.acted++;
+    b.log.unshift({ text, tone });
+    if (b.log.length > 6) b.log.pop();
+    return { type: 'agent', agent: id, text, tone };
+  }
+
+  /** Advances one tick. Returns events for the UI. */
+  step() {
+    if (this.done) return [];
+    /** @type {any[]} */
+    const ev = [];
+    const s = this.state;
+    if (s.kind === 'idle') {
+      if (this.chart) this.pushBar(0, null);
+      if (--s.wait > 0) return ev;
+      if (this.signals >= this.cfg.signalsPerSession) return ev;
+      const sig = this.newSignal();
+      this.signals++;
+      this.feed.unshift(sig);
+      if (this.feed.length > 30) this.feed.pop();
+      this.state = { kind: 'pipeline', stage: 0, sig, wait: 0 };
+      if (this.toggles.monitorFilter && sig.usdM < this.cfg.minAlertUsdM) {
+        return this.block(sig, 'monitor', `ignored: $${sig.usdM}M is under $${this.cfg.minAlertUsdM}M`, ev);
+      }
+      ev.push(this.say('monitor', `${sig.entity} ${sig.wallet} sent $${sig.usdM}M of ${sig.asset.sym} → ${sig.dest}`, 'ok', true));
+      return ev;
+    }
+    if (s.kind === 'pipeline') return this.pipelineStep(s, ev);
+    if (s.kind === 'open') return this.positionStep(ev);
+    return ev;
+  }
+
+  newSignal() {
+    const r = this.rng;
+    const c = this.cfg;
+    const asset = r.pick(ASSETS);
+    const crowding = r.next() < 0.3;
+    const funding = crowding
+      ? -(Math.abs(r.normal()) * c.fundingSd + c.fundingSd * 1.2)
+      : r.normal() * c.fundingSd + c.fundingSd * 0.3;
+    const oiChange = crowding ? r.range(0.05, 0.2) : r.range(-0.05, 0.08);
+    const regime = r.next() < 0.5 ? 'risk-on' : 'risk-off';
+    const vix = regime === 'risk-on' ? r.range(11, 19) : r.range(17, 32);
+    const usdM = Math.round((Math.pow(r.next(), 1.6) * 24 + 0.3) * 10) / 10;
+    // fresh chart for this asset: history the bots can see
+    this.chart = { asset, bars: [], lines: {}, marks: [] };
+    let prev = asset.price * Math.exp(r.normal() * 0.03);
+    for (let i = 0; i < c.historyBars; i++) {
+      const b = makeBar(prev, 0, null, r, c);
+      this.chart.bars.push(b);
+      prev = b.c;
+    }
+    return {
+      id: this.signals + 1,
+      asset,
+      entity: r.pick(ENTITIES),
+      wallet: `0x${hex(r, 4)}…${hex(r, 2)}`,
+      dest: r.pick(EXCHANGES),
+      usdM,
+      funding,
+      oiChange,
+      crowded: funding <= c.crowdFunding && oiChange >= c.crowdOi,
+      newsRisk: r.next() < c.newsRiskRate,
+      regime,
+      vix,
+      longsAt: prev * (1 - r.range(0.012, 0.05)),
+      price: prev,
+      warnings: 0,
+      /** @type {string | null} */
+      blockedBy: null,
+      /** @type {number | null} */
+      tp2Pct: null,
+      margin: 0,
+    };
+  }
+
+  pushBar(drift, sig) {
+    const bars = this.chart.bars;
+    const b = makeBar(bars[bars.length - 1].c, drift, sig, this.rng, this.cfg);
+    bars.push(b);
+    if (bars.length > this.cfg.historyBars + this.cfg.maxBars) {
+      bars.shift();
+      this.chart.marks.forEach((m) => m.i--);
+      if (this.position) this.position.openIndex--;
+    }
+    return b;
+  }
+
+  pipelineStep(s, ev) {
+    const sig = s.sig;
+    const c = this.cfg;
+    const t = this.toggles;
+    if (AGENTS[s.stage].id !== 'exec') s.stage++;
+    const agent = AGENTS[s.stage];
+    switch (agent.id) {
+      case 'macro': {
+        const headwind = sig.regime === 'risk-on' && sig.vix < c.macroVixMin;
+        if (headwind && t.macroGate) return this.block(sig, 'macro', `blocked: risk-on, VIX ${sig.vix.toFixed(1)}`, ev);
+        if (headwind) sig.warnings++;
+        ev.push(this.say('macro', `${sig.regime} · VIX ${sig.vix.toFixed(1)}${headwind ? ' · headwind, gate off' : ''}`, headwind ? 'warn' : 'ok'));
+        break;
+      }
+      case 'liq': {
+        const d = 1 - sig.longsAt / sig.price;
+        if (t.liqTarget && d >= c.tp1 * 1.5 && d <= c.liqTargetMax) {
+          sig.tp2Pct = d;
+          ev.push(this.say('liq', `longs stacked at ${sig.longsAt.toFixed(sig.asset.dec)} → TP2 −${(d * 100).toFixed(1)}%`, 'ok', true));
+        } else {
+          ev.push(this.say('liq', `longs at ${sig.longsAt.toFixed(sig.asset.dec)} · TP2 stays −${(c.tp2 * 100).toFixed(1)}%`));
+        }
+        break;
+      }
+      case 'funding':
+        ev.push(this.say('funding', `funding ${(sig.funding * 100).toFixed(4)}% · OI ${sig.oiChange >= 0 ? '+' : ''}${(sig.oiChange * 100).toFixed(0)}% · ${sig.crowded ? 'CROWDED' : 'ok'}`, sig.crowded ? 'warn' : 'ok', sig.crowded));
+        break;
+      case 'squeeze':
+        if (sig.crowded && t.squeezeGate) return this.block(sig, 'squeeze', 'blocked: crowded shorts', ev);
+        if (sig.crowded) sig.warnings++;
+        ev.push(this.say('squeeze', sig.crowded ? 'gate off: crowded short let through' : 'pass', sig.crowded ? 'warn' : 'ok'));
+        break;
+      case 'news':
+        if (sig.newsRisk && t.newsFilter) return this.block(sig, 'news', 'blocked: headline pending', ev);
+        if (sig.newsRisk) sig.warnings++;
+        ev.push(this.say('news', sig.newsRisk ? 'filter off: headline ignored' : 'no headlines · pass', sig.newsRisk ? 'warn' : 'ok'));
+        break;
+      case 'sizer': {
+        let margin = this.equity * c.marginPct;
+        const cut = t.sizerCut && sig.warnings > 0;
+        if (cut) margin /= 2;
+        if (margin < 1) {
+          this.busted = true;
+          ev.push(this.say('sizer', 'equity too low to trade', 'bad'));
+          this.state = { kind: 'idle', wait: 1 };
+          return ev;
+        }
+        sig.margin = margin;
+        ev.push(this.say('sizer', `margin $${margin.toFixed(2)} × ${c.leverage}x = $${(margin * c.leverage).toFixed(0)}${cut ? ' (halved)' : ''}`, cut ? 'warn' : null, cut));
+        break;
+      }
+      case 'exec': {
+        // post-only: the order rests until price trades into it
+        if (s.wait > 0) this.pushBar(0, null);
+        if (this.rng.next() < c.postOnlyFill) {
+          this.open(sig, ev);
+        } else if (++s.wait > c.postOnlyWaitBars) {
+          this.missed++;
+          ev.push(this.say('exec', `post-only not filled after ${c.postOnlyWaitBars} bars · cancelled`, 'warn'));
+          ev.push({ type: 'missed', text: `${sig.asset.sym} short missed: post-only order never filled` });
+          sig.blockedBy = 'missed';
+          this.state = { kind: 'idle', wait: this.idleWait() };
+        } else {
+          ev.push(this.say('exec', `post-only resting · bar ${s.wait}/${c.postOnlyWaitBars}`));
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    return ev;
+  }
+
+  /** Blocks a signal, and plays out what the trade would have done on paper (separate rng). */
+  block(sig, gate, text, ev) {
+    sig.blockedBy = gate;
+    this.blocked[gate]++;
+    const shadow = this.shadowTrade(sig);
+    const b = this.bots[gate];
+    b.blocked++;
+    b.shadowPnl += shadow;
+    b.shadowN++;
+    ev.push(this.say(gate, text, 'block', true));
+    ev.push({ type: 'blocked', gate, text: `${sig.asset.sym} short ${text}` });
+    this.state = { kind: 'idle', wait: this.idleWait() };
+    return ev;
+  }
+
+  /** What a blocked trade would have made, simulated on its own random path. Does not touch equity. */
+  shadowTrade(sig) {
+    const c = this.cfg;
+    const rng = createRng((this.seed * 2654435761 + sig.id * 40503) >>> 0);
+    const margin = this.equity * c.marginPct;
+    if (margin < 1) return 0;
+    const p = newPosition(sig, sig.price, margin, c);
+    let prev = sig.price;
+    for (let i = 0; i < c.maxBars + 1; i++) {
+      const bar = makeBar(prev, shortDrift(sig, c), sig, rng, c);
+      prev = bar.c;
+      if (manageBar(p, bar, c).closed) break;
+    }
+    return p.realized;
+  }
+
+  idleWait() {
+    return this.cfg.idleMin + this.rng.int(this.cfg.idleMax - this.cfg.idleMin + 1);
+  }
+
+  open(sig, ev) {
+    const c = this.cfg;
+    const entry = this.chart.bars[this.chart.bars.length - 1].c;
+    const p = newPosition(sig, entry, sig.margin, c);
+    p.id = this.nextTradeId++;
+    p.openIndex = this.chart.bars.length - 1;
+    this.position = p;
+    this.chart.marks = [{ i: p.openIndex, price: entry, kind: 'entry' }];
+    this.syncLines();
+    this.state = { kind: 'open' };
+    this.addFill('SELL', sig.asset, entry, p.notional, 'open short · post-only');
+    ev.push(this.say('exec', `short ${sig.asset.sym} @ ${entry.toFixed(sig.asset.dec)} · ${c.leverage}x`, 'ok', true));
+    ev.push(this.say('tp', `TP1 ${p.tp1.toFixed(sig.asset.dec)} · TP2 ${p.tp2.toFixed(sig.asset.dec)}`));
+    ev.push(this.say('stopguard', `stop ${p.stop.toFixed(sig.asset.dec)} · liq ${p.liq.toFixed(sig.asset.dec)}`));
+    ev.push({ type: 'open', text: `Opened ${sig.asset.sym} short` });
+  }
+
+  syncLines() {
+    const p = this.position;
+    if (!this.chart) return;
+    this.chart.lines = p ? { entry: p.entry, stop: p.stop, liq: p.liq, tp1: p.tp1Done ? null : p.tp1, tp2: p.tp2 } : {};
+  }
+
+  addFill(side, asset, price, notional, note) {
+    this.fills.unshift({ side, sym: asset.sym, price, dec: asset.dec, notional, note });
+    if (this.fills.length > 30) this.fills.pop();
+  }
+
+  positionStep(ev) {
+    const p = this.position;
+    const c = this.cfg;
+    const bar = this.pushBar(shortDrift(p.sig, c), p.sig);
+    const res = manageBar(p, bar, c);
+    const dec = p.sig.asset.dec;
+    /** @type {Record<string, string>} */
+    const labels = { tp1: 'TP 1 · half', tp2: 'TP 2 · rest', stop: 'stop', trail: 'trailing stop', liq: 'LIQUIDATED', time: 'time exit' };
+    for (const x of res.exits) {
+      this.chart.marks.push({ i: this.chart.bars.length - 1, price: x.price, kind: x.kind });
+      const label = labels[x.kind];
+      this.addFill('BUY', p.sig.asset, x.price, x.qty * x.price, label);
+      const bot = x.kind.startsWith('tp') ? 'tp' : 'stopguard';
+      if (x.kind === 'liq') this.liquidations++;
+      ev.push(this.say(bot, `${label} @ ${x.price.toFixed(dec)}`, x.pnl >= 0 ? 'ok' : 'bad', true));
+    }
+    if (res.moved && !res.closed) ev.push(this.say('stopguard', res.moved, 'ok', true));
+    if (res.closed) return this.finish(ev, res.closed);
+    this.syncLines();
+    return ev;
+  }
+
+  finish(ev, reason) {
+    const p = this.position;
+    const pnl = Math.max(p.realized, -this.equity);
+    this.equity = Math.max(0, this.equity + pnl);
+    this.equityHistory.push(this.equity);
+    this.feesPaid += p.fees;
+    this.fundingNet += p.funding;
+    const exitValue = p.exits.reduce((s, x) => s + x.price * x.qty, 0);
+    const trade = {
+      id: p.id, sym: p.sig.asset.sym, dec: p.sig.asset.dec, entity: p.sig.entity,
+      entry: p.entry, exitAvg: exitValue / p.qty, reason, pnl, roe: pnl / p.margin,
+      margin: p.margin, fees: p.fees, funding: p.funding, bars: p.bars, lev: p.lev,
+      crowded: p.sig.crowded, newsRisk: p.sig.newsRisk, regime: p.sig.regime,
+    };
+    this.trades.unshift(trade);
+    this.position = null;
+    this.syncLines();
+    this.state = { kind: 'idle', wait: this.idleWait() };
+    if (this.equity < 1) this.busted = true;
+    ev.push(this.say('scribe', `#${trade.id} ${trade.sym} ${reason} ${pnl >= 0 ? '+' : '−'}$${Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'ok' : 'bad', true));
+    ev.push({ type: 'closed', trade });
+    return ev;
+  }
+
+  runToEnd(maxSteps = 100000) {
+    for (let i = 0; i < maxSteps && !this.done; i++) this.step();
+    return this;
+  }
+}
+
+/**
+ * Runs many sessions with the same settings and returns summary numbers.
+ * @param {Partial<typeof DEFAULTS>} cfg
+ * @param {Partial<typeof DEFAULT_TOGGLES>} toggles
+ */
+function realityCheck(cfg, toggles, runs = 1000, seed0 = 1) {
+  const finals = [];
+  let trades = 0, wins = 0, liqs = 0, blocked = 0, busts = 0;
+  /** @type {Record<string, number>} */
+  const gateSaved = { monitor: 0, macro: 0, squeeze: 0, news: 0 };
+  for (let i = 0; i < runs; i++) {
+    const d = new Desk(cfg, seed0 + i, toggles).runToEnd();
+    finals.push(d.equity);
+    trades += d.trades.length;
+    wins += d.trades.filter((t) => t.pnl > 0).length;
+    liqs += d.liquidations;
+    blocked += d.totalBlocked;
+    if (d.busted) busts++;
+    for (const g of Object.keys(gateSaved)) gateSaved[g] -= d.bots[g].shadowPnl;
+  }
+  const start = { ...DEFAULTS, ...cfg }.startEquity;
+  const sorted = [...finals].sort((a, b) => a - b);
+  for (const g of Object.keys(gateSaved)) gateSaved[g] /= runs;
+  return {
+    runs, start, finals,
+    avg: finals.reduce((a, b) => a + b, 0) / runs,
+    median: sorted[Math.floor(runs / 2)],
+    p10: sorted[Math.floor(runs * 0.1)],
+    p90: sorted[Math.floor(runs * 0.9)],
+    belowStart: finals.filter((f) => f < start).length / runs,
+    winRate: trades ? wins / trades : 0,
+    tradesPerRun: trades / runs,
+    liqsPerRun: liqs / runs,
+    blockedPerRun: blocked / runs,
+    busts: busts / runs,
+    /** Average per session of what each gate's blocked trades would have lost (positive = the gate saved money). */
+    gateSaved,
+  };
+}
+
+</script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const money = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const signed = (n) => (n >= 0 ? '+' : '−') + money(Math.abs(n));
+  const pct = (n, d = 2) => (n >= 0 ? '+' : '−') + Math.abs(n * 100).toFixed(d) + '%';
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  const settings = { cfg: { leverage: 10, edgePerBar: 0 }, toggles: { ...DEFAULT_TOGGLES } };
+  let sheetBot = null;
+  const SWITCH_LABELS = { monitorFilter: 'Min size', macroGate: 'Macro gate', liqTarget: 'Liq target', squeezeGate: 'Squeeze gate', newsFilter: 'News filter', sizerCut: 'Size cut' };
+  /** Per-bot settings: [cfg key, label, min, max, step, display multiplier, unit] */
+  const BOT_SETTINGS = {
+    monitor: [['minAlertUsdM', 'Minimum transfer', 0, 10, 0.5, 1, '$M']],
+    macro: [['macroVixMin', 'Skip risk-on shorts when VIX is under', 10, 25, 0.5, 1, '']],
+    liq: [['liqTargetMax', 'Use the cluster if within', 0.02, 0.06, 0.005, 100, '%']],
+    funding: [['crowdOi', 'Crowded when open interest rose', 0.02, 0.15, 0.01, 100, '%']],
+    sizer: [['marginPct', 'Margin per trade', 0.02, 0.25, 0.01, 100, '% of equity']],
+    exec: [['postOnlyFill', 'Post-only fill chance per bar', 0.3, 1, 0.05, 100, '%']],
+    tp: [['tp1', 'Take-profit 1', 0.005, 0.03, 0.001, 100, '%'], ['tp2', 'Take-profit 2', 0.01, 0.05, 0.001, 100, '%']],
+    stopguard: [['stop', 'Initial stop', 0.004, 0.03, 0.001, 100, '%'], ['trail', 'Trail distance', 0.004, 0.03, 0.001, 100, '%']],
+  };
+  let desk, running = false, speed = 1, timer = null, tab = 'feed';
+  let agentState = {}, activeAgent = null, activeUntil = 0;
+
+  function newDesk() {
+    const seed = Math.floor(Math.random() * 1e9);
+    desk = new Desk({ ...settings.cfg }, seed, { ...settings.toggles });
+    agentState = {};
+    AGENTS.forEach((a) => (agentState[a.id] = { text: 'idle', tone: null }));
+    $('banner').classList.remove('show');
+    $('seed').textContent = 'seed ' + seed;
+    render();
+  }
+
+  // ---------- pipeline markup ----------
+  function buildPipeline() {
+    const stages = [];
+    AGENTS.forEach((a) => {
+      let s = stages.find((x) => x.name === a.stage);
+      if (!s) stages.push((s = { name: a.stage, agents: [] }));
+      s.agents.push(a);
+    });
+    $('pipeline').innerHTML = stages.map((s) => `
+      <div class="stage"><div class="stage-name">${s.name}</div><div class="agents">
+        ${s.agents.map((a) => `<button class="agent" id="ag-${a.id}" data-bot="${a.id}" aria-label="${a.name}: open bot page"><div class="nm"><i class="led"></i>${a.icon} ${a.name}</div><div class="st" id="st-${a.id}">idle</div></button>`).join('')}
+      </div></div>`).join('');
+    document.querySelectorAll('[data-bot]').forEach((b) => (b.onclick = () => openSheet(b.dataset.bot)));
+  }
+
+  // ---------- ticking ----------
+  function tick() {
+    const events = desk.step();
+    for (const e of events) handle(e);
+    render();
+    if (desk.done) stop(true);
+  }
+
+  function handle(e) {
+    if (e.type === 'agent') {
+      agentState[e.agent] = { text: e.text, tone: e.tone || null };
+      activeAgent = e.agent;
+      activeUntil = performance.now() + 700;
+    } else if (e.type === 'blocked') {
+      toast('⛔ ' + e.text, 'block');
+    } else if (e.type === 'missed') {
+      toast('⌛ ' + e.text, 'block');
+    } else if (e.type === 'open') {
+      toast('⚡ ' + e.text, 'ok');
+    } else if (e.type === 'closed') {
+      const t = e.trade;
+      toast(`${t.pnl >= 0 ? '✅' : '❌'} ${t.sym} ${t.reason} ${signed(t.pnl)} (${pct(t.roe, 1)} ROE)`, t.pnl >= 0 ? 'ok' : 'bad');
+      if (t.reason === 'liquidated') redFlash();
+      if (t.reason === 'take-profit 2') confetti();
+    }
+  }
+
+  function start() {
+    if (desk.done) newDesk();
+    running = true;
+    schedule();
+    render();
+  }
+  function stop(finished) {
+    running = false;
+    clearInterval(timer);
+    timer = null;
+    if (finished) showBanner();
+    render();
+  }
+  function schedule() {
+    clearInterval(timer);
+    if (running) timer = setInterval(tick, 420 / speed);
+  }
+
+  // ---------- rendering ----------
+  function render() {
+    const eq = desk.equity;
+    const start0 = desk.cfg.startEquity;
+    const [w, c] = money(eq).split('.');
+    $('equity').innerHTML = `${w}<span class="cents">.${c}</span>`;
+    const pnlEl = $('pnl');
+    pnlEl.textContent = signed(eq - start0);
+    pnlEl.className = 'chip ' + (eq >= start0 ? 'up' : 'down');
+    $('ret').textContent = pct(eq / start0 - 1);
+    $('ret').className = 'chip ' + (eq >= start0 ? 'up' : 'down');
+    const tr = desk.trades;
+    $('s-trades').textContent = tr.length;
+    $('s-win').textContent = tr.length ? Math.round((tr.filter((t) => t.pnl > 0).length / tr.length) * 100) + '%' : '0%';
+    $('s-block').textContent = desk.totalBlocked;
+    $('s-liq').textContent = desk.liquidations;
+    $('sig-count').textContent = `${desk.signals} / ${desk.cfg.signalsPerSession} signals`;
+    const bars = desk.chart ? desk.chart.bars.length : 0;
+    const mins = desk.signals * 3 + bars; // display clock: rough minutes elapsed
+    $('clock').textContent = `${String(Math.floor(mins / 60) % 24).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+    $('status').className = 'status' + (running ? ' on' : '');
+    $('status').lastElementChild.textContent = running ? 'RUNNING' : desk.done ? 'DONE' : 'PAUSED';
+    $('go').textContent = running ? '❚❚ Pause' : desk.done ? '▶ New session' : desk.signals ? '▶ Resume' : '▶ Start';
+
+    // pipeline
+    const now = performance.now();
+    AGENTS.forEach((a) => {
+      const el = $('ag-' + a.id);
+      const s = agentState[a.id];
+      const off = a.toggle && !desk.toggles[a.toggle];
+      el.className = 'agent' + (s.tone ? ' ' + s.tone : '') + (off ? ' off' : '') + (activeAgent === a.id && now < activeUntil ? ' active' : '');
+      $('st-' + a.id).textContent = s.text;
+    });
+    const st = desk.state;
+    const flow = st.kind === 'pipeline' ? (st.stage + 1) / 8 : st.kind === 'open' ? 1 : 0;
+    $('flow').style.width = Math.min(100, flow * 100) + '%';
+
+    // position box
+    const p = desk.position;
+    if (p && desk.chart) {
+      const last = desk.chart.bars[desk.chart.bars.length - 1].c;
+      const unreal = p.qtyOpen * (p.entry - last);
+      const roe = (p.realized + unreal) / p.margin;
+      $('posbox').innerHTML = `<span class="side">SHORT ${p.lev}×</span><span class="${roe >= 0 ? 'up' : 'down'}">${pct(roe, 1)} ROE</span>`;
+    } else {
+      $('posbox').innerHTML = '<span class="muted">FLAT</span>';
+    }
+    $('sym').textContent = desk.chart ? desk.chart.asset.sym + '-PERP' : '—';
+
+    drawSpark();
+    drawChart();
+    renderTab();
+    if (sheetBot && $('sheet-live')) $('sheet-live').innerHTML = sheetLive(AGENTS.find((x) => x.id === sheetBot));
+  }
+
+  function sizeCanvas(cv) {
+    const r = cv.getBoundingClientRect();
+    const dpr = devicePixelRatio || 1;
+    if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) {
+      cv.width = Math.round(r.width * dpr);
+      cv.height = Math.round(r.height * dpr);
+    }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w: r.width, h: r.height };
+  }
+
+  function drawSpark() {
+    const { ctx, w, h } = sizeCanvas($('spark'));
+    ctx.clearRect(0, 0, w, h);
+    const v = desk.equityHistory;
+    const base = desk.cfg.startEquity;
+    const lo = Math.min(base, ...v), hi = Math.max(base, ...v);
+    const span = hi - lo || 1;
+    const x = (i) => 2 + (v.length < 2 ? 0 : (i / (v.length - 1)) * (w - 4));
+    const y = (val) => 4 + (1 - (val - lo) / span) * (h - 8);
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = css('--muted');
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.moveTo(0, y(base)); ctx.lineTo(w, y(base)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    if (v.length < 2) return;
+    const col = v[v.length - 1] >= base ? css('--up') : css('--down');
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, col + '55');
+    g.addColorStop(1, col + '00');
+    ctx.beginPath();
+    v.forEach((val, i) => (i ? ctx.lineTo(x(i), y(val)) : ctx.moveTo(x(i), y(val))));
+    ctx.lineTo(x(v.length - 1), h); ctx.lineTo(x(0), h); ctx.closePath();
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath();
+    v.forEach((val, i) => (i ? ctx.lineTo(x(i), y(val)) : ctx.moveTo(x(i), y(val))));
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.stroke(); ctx.shadowBlur = 0;
+  }
+
+  function drawChart() {
+    const { ctx, w, h } = sizeCanvas($('chart'));
+    ctx.clearRect(0, 0, w, h);
+    const ch = desk.chart;
+    ctx.font = '10px ' + css('--mono');
+    if (!ch) {
+      ctx.fillStyle = css('--muted');
+      ctx.fillText('Waiting for the first wallet alert…', 12, h / 2);
+      return;
+    }
+    const bars = ch.bars;
+    const padR = 58, volH = h * 0.16, top = 8, bottom = h - volH - 6;
+    const lines = ch.lines;
+    let lo = Math.min(...bars.map((b) => b.l)), hi = Math.max(...bars.map((b) => b.h));
+    ['entry', 'stop', 'tp1', 'tp2'].forEach((k) => { if (lines[k]) { lo = Math.min(lo, lines[k]); hi = Math.max(hi, lines[k]); } });
+    const liqVisible = lines.liq && lines.liq < hi + (hi - lo) * 0.6;
+    if (liqVisible) hi = Math.max(hi, lines.liq);
+    const pad = (hi - lo) * 0.06 || hi * 0.001;
+    lo -= pad; hi += pad;
+    const y = (p) => top + (1 - (p - lo) / (hi - lo)) * (bottom - top);
+    const n = Math.max(bars.length, 60);
+    const cw = (w - padR) / n;
+    const x = (i) => i * cw + cw / 2;
+    const dec = ch.asset.dec;
+
+    // grid
+    ctx.strokeStyle = css('--line');
+    ctx.lineWidth = 1;
+    const tagYs = ['entry', 'stop', 'tp1', 'tp2', 'liq'].filter((k) => lines[k]).map((k) => y(lines[k])).concat([y(bars[bars.length - 1].c)]);
+    for (let k = 0; k <= 4; k++) {
+      const p = lo + ((hi - lo) * k) / 4;
+      ctx.beginPath(); ctx.moveTo(0, y(p)); ctx.lineTo(w - padR, y(p)); ctx.stroke();
+      if (tagYs.some((ty) => Math.abs(ty - y(p)) < 16)) continue;
+      ctx.fillStyle = css('--muted');
+      ctx.fillText(p.toFixed(dec), w - padR + 6, y(p) + 3);
+    }
+    // hold zone
+    if (desk.position) {
+      const i0 = Math.max(0, desk.position.openIndex - (desk.chart.bars.length - bars.length));
+      ctx.fillStyle = 'rgba(45,226,230,0.06)';
+      ctx.fillRect(x(i0) - cw / 2, top, w - padR - (x(i0) - cw / 2), bottom - top);
+    }
+    // volume
+    const vmax = Math.max(...bars.map((b) => b.vol));
+    bars.forEach((b, i) => {
+      ctx.fillStyle = b.c >= b.o ? 'rgba(47,213,126,0.35)' : 'rgba(255,77,109,0.35)';
+      const vh = (b.vol / vmax) * volH;
+      ctx.fillRect(x(i) - cw * 0.35, h - vh, cw * 0.7, vh);
+    });
+    // candles
+    bars.forEach((b, i) => {
+      const upc = b.c >= b.o;
+      const col = upc ? css('--up') : css('--down');
+      ctx.strokeStyle = col; ctx.fillStyle = col;
+      ctx.beginPath(); ctx.moveTo(x(i), y(b.h)); ctx.lineTo(x(i), y(b.l)); ctx.stroke();
+      const yo = y(b.o), yc = y(b.c);
+      ctx.fillRect(x(i) - cw * 0.32, Math.min(yo, yc), cw * 0.64, Math.max(1, Math.abs(yc - yo)));
+    });
+    // levels
+    const usedTags = [];
+    const level = (p, colVar, label, dash) => {
+      if (!p) return;
+      const yy = y(p);
+      ctx.setLineDash(dash ? [5, 4] : []);
+      ctx.strokeStyle = css(colVar); ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(w - padR, yy); ctx.stroke();
+      ctx.setLineDash([]);
+      // keep the right-edge tags from stacking on each other (e.g. stop moved to breakeven)
+      let ty = yy;
+      while (usedTags.some((u) => Math.abs(u - ty) < 17)) ty += 17;
+      usedTags.push(ty);
+      ctx.fillStyle = css(colVar);
+      ctx.fillRect(w - padR + 2, ty - 8, padR - 4, 16);
+      ctx.fillStyle = '#06070b';
+      ctx.fillText(label, w - padR + 5, ty + 3);
+    };
+    level(lines.tp2, '--up', 'TP2', true);
+    level(lines.tp1, '--up', 'TP1', true);
+    level(lines.entry, '--cyan', 'ENTRY', false);
+    level(lines.stop, '--amber', 'STOP', true);
+    if (liqVisible) level(lines.liq, '--liq', 'LIQ', false);
+    else if (lines.liq) { ctx.fillStyle = css('--liq'); ctx.fillText(`LIQ ↑ ${lines.liq.toFixed(dec)}`, 8, top + 10); }
+    // fill marks
+    const shift = 0;
+    (ch.marks || []).forEach((m) => {
+      const i = m.i - shift;
+      if (i < 0 || i >= bars.length) return;
+      ctx.beginPath(); ctx.arc(x(i), y(m.price), 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = m.kind === 'entry' ? css('--cyan') : m.kind.startsWith('tp') ? css('--up') : m.kind === 'liq' ? css('--liq') : css('--amber');
+      ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
+    });
+    // last price tag
+    const last = bars[bars.length - 1].c;
+    ctx.fillStyle = css('--text');
+    ctx.fillRect(w - padR + 2, y(last) - 8, padR - 4, 16);
+    ctx.fillStyle = '#06070b';
+    ctx.fillText(last.toFixed(dec), w - padR + 5, y(last) + 3);
+  }
+
+  function renderTab() {
+    const body = $('tab-body');
+    if (tab === 'feed') {
+      body.innerHTML = desk.feed.length
+        ? `<ul class="list feed">${desk.feed.map((s) => `<li><span>🐋 <b>${s.entity}</b> ${s.wallet} sent <b>${s.amount} of ${s.asset.sym}</b> → ${s.dest}</span><span class="tag ${s.blockedBy || 'pass'}">${s.blockedBy === 'missed' ? 'MISSED' : s.blockedBy ? 'BLOCKED' : 'SHORT'}</span></li>`).join('')}</ul>`
+        : '<p class="empty">No alerts yet. Press Start.</p>';
+    } else if (tab === 'book') {
+      if (!desk.chart) { body.innerHTML = '<p class="empty">No market loaded yet.</p>'; return; }
+      const last = desk.chart.bars[desk.chart.bars.length - 1].c;
+      const dec = desk.chart.asset.dec;
+      const tickSize = last * 0.0004;
+      const rows = [];
+      for (let k = 7; k >= 1; k--) rows.push({ side: 'ask', p: last + k * tickSize, q: 5 + Math.random() * 60 });
+      rows.push({ mid: true });
+      for (let k = 1; k <= 7; k++) rows.push({ side: 'bid', p: last - k * tickSize, q: 5 + Math.random() * 60 });
+      body.innerHTML = `<div class="book">${rows.map((r) => r.mid
+        ? `<div class="mid">${last.toFixed(dec)} <span class="muted">simulated book</span></div>`
+        : `<div class="lvl ${r.side}"><i style="width:${(r.q / 65) * 100}%"></i><span>${r.p.toFixed(dec)}</span><span>${r.q.toFixed(1)}k</span></div>`).join('')}</div>`;
+    } else if (tab === 'fills') {
+      body.innerHTML = desk.fills.length
+        ? `<ul class="list fills">${desk.fills.map((f) => `<li><span class="${f.side === 'SELL' ? 'down' : 'up'}">${f.side}</span><b>${f.sym}</b><span class="muted">${f.note}</span><span>${f.price.toFixed(f.dec)}</span></li>`).join('')}</ul>`
+        : '<p class="empty">No fills yet.</p>';
+    } else if (tab === 'bots') {
+      body.innerHTML = `<ul class="list botlist">${AGENTS.map((a) => `<li data-open="${a.id}"><span>${a.icon}</span><span><b>${a.name}</b> <span class="muted">${botLine(a)}</span></span><span class="muted">›</span></li>`).join('')}</ul>`;
+      body.querySelectorAll('[data-open]').forEach((li) => (li.onclick = () => openSheet(li.dataset.open)));
+    } else {
+      body.innerHTML = desk.trades.length
+        ? `<ul class="list trades">${desk.trades.map((t) => `<li><b>${t.sym}</b><span class="muted">${t.reason} · ${t.bars}m · ${t.lev}×</span><span class="${t.pnl >= 0 ? 'up' : 'down'}">${signed(t.pnl)}</span></li>`).join('')}</ul>`
+        : '<p class="empty">No closed trades yet.</p>';
+    }
+  }
+
+  function showBanner() {
+    const eq = desk.equity, s0 = desk.cfg.startEquity;
+    const tr = desk.trades;
+    $('banner-text').innerHTML = `Equity <b class="${eq >= s0 ? 'up' : 'down'}">${money(eq)}</b> (${pct(eq / s0 - 1)}) after ${desk.signals} signals: ${tr.length} trades, ${desk.totalBlocked} blocked by the gates, ${desk.missed} missed fills, ${desk.liquidations} liquidated, ${money(desk.feesPaid)} in fees. One session is mostly luck. Run the reality check to see the average.`;
+    $('banner').classList.add('show');
+  }
+
+  // ---------- effects ----------
+  let toastTimer;
+  function toast(text, tone) {
+    document.querySelectorAll('.toast').forEach((t) => t.remove());
+    const t = document.createElement('div');
+    t.className = 'toast ' + (tone || '');
+    t.setAttribute('role', 'status');
+    t.textContent = text;
+    document.body.appendChild(t);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.remove(), 2200);
+  }
+  function redFlash() {
+    if (reduce) return;
+    const f = document.createElement('div');
+    f.className = 'flash';
+    document.body.appendChild(f);
+    setTimeout(() => f.remove(), 800);
+  }
+  function confetti() {
+    if (reduce) return;
+    const c = document.createElement('canvas');
+    c.className = 'confetti';
+    c.width = innerWidth * devicePixelRatio; c.height = innerHeight * devicePixelRatio;
+    document.body.appendChild(c);
+    const ctx = c.getContext('2d'); ctx.scale(devicePixelRatio, devicePixelRatio);
+    const cols = [css('--cyan'), css('--lime'), css('--violet'), css('--up'), css('--amber')];
+    const ps = Array.from({ length: 80 }, () => ({ x: innerWidth / 2, y: innerHeight / 3, vx: (Math.random() - 0.5) * 10, vy: -Math.random() * 9 - 3, r: 3 + Math.random() * 5, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6 }));
+    const t0 = performance.now();
+    (function f(t) {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      ps.forEach((p) => { p.vy += 0.25; p.x += p.vx; p.y += p.vy; p.a += 0.2; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); });
+      if (t - t0 < 1600) requestAnimationFrame(f); else c.remove();
+    })(t0);
+  }
+
+  // ---------- reality check ----------
+  function runReality() {
+    $('rc-go').textContent = 'Running 1,000 sessions…';
+    $('rc-go').disabled = true;
+    setTimeout(() => {
+      const r = realityCheck({ ...settings.cfg }, { ...settings.toggles }, 1000);
+      $('rc-go').textContent = 'Run reality check again';
+      $('rc-go').disabled = false;
+      const s0 = r.start;
+      const verdict = r.avg < s0
+        ? `With these settings the average session <b class="down">loses ${money(s0 - r.avg)}</b> and ${Math.round(r.belowStart * 100)}% of sessions end below ${money(s0)}.`
+        : `With these settings the average session gains ${money(r.avg - s0)}, but only because the edge slider assumes the signal works. Nothing has shown that it does.`;
+      $('rc-out').innerHTML = `
+        <canvas id="hist" aria-label="Histogram of final equity across 1,000 sessions"></canvas>
+        <div class="rc-grid">
+          <div class="stat"><b class="${r.avg >= s0 ? 'up' : 'down'}">${money(r.avg)}</b><span>Average end</span></div>
+          <div class="stat"><b>${Math.round(r.belowStart * 100)}%</b><span>Below start</span></div>
+          <div class="stat"><b>${Math.round(r.winRate * 100)}%</b><span>Trade win rate</span></div>
+          <div class="stat"><b>${money(r.p10)}</b><span>Worst 10%</span></div>
+          <div class="stat"><b>${money(r.p90)}</b><span>Best 10%</span></div>
+          <div class="stat"><b>${r.liqsPerRun.toFixed(2)}</b><span>Liqs / session</span></div>
+        </div>
+        <p class="verdict">${verdict}</p>`;
+      drawHist(r);
+    }, 30);
+  }
+  function drawHist(r) {
+    const { ctx, w, h } = sizeCanvas($('hist'));
+    const lo = Math.min(...r.finals), hi = Math.max(...r.finals, r.start);
+    const nb = 28, bins = new Array(nb).fill(0);
+    r.finals.forEach((f) => bins[Math.min(nb - 1, Math.floor(((f - lo) / (hi - lo || 1)) * nb))]++);
+    const bmax = Math.max(...bins);
+    const bw = w / nb;
+    bins.forEach((b, i) => {
+      const mid = lo + ((i + 0.5) / nb) * (hi - lo);
+      ctx.fillStyle = mid >= r.start ? css('--up') : css('--down');
+      const bh = (b / bmax) * (h - 18);
+      ctx.fillRect(i * bw + 1, h - 14 - bh, bw - 2, bh);
+    });
+    const xs = ((r.start - lo) / (hi - lo || 1)) * w;
+    ctx.setLineDash([4, 4]); ctx.strokeStyle = css('--text');
+    ctx.beginPath(); ctx.moveTo(xs, 0); ctx.lineTo(xs, h - 14); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = css('--muted'); ctx.font = '10px ' + css('--mono');
+    ctx.fillText(money(lo), 0, h - 2);
+    const ht = money(hi); ctx.fillText(ht, w - ctx.measureText(ht).width, h - 2);
+    ctx.fillStyle = css('--text'); ctx.fillText('start', Math.min(w - 30, xs + 4), 10);
+  }
+
+  // ---------- real-data test ----------
+  async function loadReal() {
+    const body = $('real-body');
+    try {
+      const res = await fetch('forward/results.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const r = await res.json();
+      const s = r.signal, c = r.control;
+      const verdictTone = Math.abs(r.tRoe) < 2 ? 'flat' : r.tRoe > 0 ? 'good' : '';
+      const verdict = Math.abs(r.tRoe) < 2
+        ? 'No reliable difference: whale-alert shorts did not beat random shorts by more than chance would explain.'
+        : r.tRoe > 0
+          ? 'Whale-alert shorts beat random shorts by more than chance usually explains. Keep watching it: one window can mislead.'
+          : 'Whale-alert shorts did worse than shorting at random. After big transfers to exchanges, prices tended to rise slightly, not fall.';
+      const p = (x, d = 2) => (x >= 0 ? '+' : '−') + Math.abs(x * 100).toFixed(d) + '%';
+      const maxAbs = Math.max(Math.abs(s.meanRoe), Math.abs(c.meanRoe), 0.005);
+      const bar = (label, v, col) => {
+        const w = (Math.abs(v) / maxAbs) * 50;
+        const left = v >= 0 ? 50 : 50 - w;
+        return `<div class="row"><span>${label}</span><span class="track"><span class="zero"></span><i style="left:${left}%;width:${w}%;background:${col}"></i></span><span class="${v >= 0 ? 'up' : 'down'}">${p(v)}</span></div>`;
+      };
+      const when = (iso) => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      body.innerHTML = `
+        <p class="verdict muted" style="margin-top:0">${s.n} real whale transfers to exchanges from the last ${r.windowDays} days (Whale Alert's free archive, up to ${when(r.archiveLastAlert)}), each traded on paper with the desk's exit rules on Hyperliquid's real ${r.candleInterval} candles, against ${c.n} shorts at random times on the same coins.</p>
+        <div class="vs">
+          <div class="stat sig"><b class="${s.meanPnl >= 0 ? 'up' : 'down'}">${signed(s.meanPnl)}</b><span>Whale-alert short, avg per trade</span></div>
+          <div class="stat"><b class="${c.meanPnl >= 0 ? 'up' : 'down'}">${signed(c.meanPnl)}</b><span>Random short, avg per trade</span></div>
+        </div>
+        <div class="bars2" aria-label="Average return on margin">${bar('Whale alerts', s.meanRoe, 'var(--cyan)')}${bar('Random', c.meanRoe, 'var(--muted)')}</div>
+        <div class="table-wrap"><table class="real-table">
+          <tr><th></th><th>Whale alerts</th><th>Random</th></tr>
+          <tr><td>Trades</td><td>${s.n}</td><td>${c.n}</td></tr>
+          <tr><td>Win rate</td><td>${Math.round(s.winRate * 100)}%</td><td>${Math.round(c.winRate * 100)}%</td></tr>
+          <tr><td>Return on margin</td><td>${p(s.meanRoe)}</td><td>${p(c.meanRoe)}</td></tr>
+          <tr><td>Price 1h later, for a short</td><td>${p(s.ret1h.mean, 3)}</td><td>${p(c.ret1h.mean, 3)}</td></tr>
+          <tr><td>Price 4h later, for a short</td><td>${p(s.ret4h.mean, 3)}</td><td>${p(c.ret4h.mean, 3)}</td></tr>
+          <tr><td>Total on $${r.rules.marginUsd} margin each</td><td class="${s.totalPnl >= 0 ? 'up' : 'down'}">${signed(s.totalPnl)}</td><td class="muted">—</td></tr>
+        </table></div>
+        <div class="verdict-box ${verdictTone}"><b>${verdict}</b><br><span class="muted">Difference vs random, t-statistic ${r.tRoe.toFixed(2)} (around ±2 or beyond is notable). Alerts often come in bursts, which overstates certainty. ${r.rules.leverage}× leverage, TP ${p(-r.rules.tp1, 1)} / ${p(-r.rules.tp2, 1)}, stop ${p(r.rules.stop, 1)}, ${r.rules.holdMinutes}-minute limit, fees included. Updated ${when(r.generatedAt)}.</span></div>
+        <div class="lbl" style="margin-top:12px;font:700 10px var(--mono);letter-spacing:.14em;color:var(--violet)">LATEST REAL ALERTS, TRADED ON PAPER</div>
+        <ul class="list real-trades">${r.trades.slice(0, 12).map((t) => `<li><span class="muted">${when(t.time)}</span><b>${t.coin}</b><span class="muted">$${t.usdM}M → ${t.to}</span><span class="${t.pnl >= 0 ? 'up' : 'down'}">${signed(t.pnl)}</span></li>`).join('')}</ul>`;
+    } catch (e) {
+      body.innerHTML = '<p class="empty">No results file here. Run <code>npm run forward</code> in the repo, or open the desk on your deployed site.</p>';
+    }
+  }
+
+  // ---------- your wallet (read-only) ----------
+  const RPC = 'https://api.mainnet-beta.solana.com';
+  let walletAddr = null;
+  try { walletAddr = localStorage.getItem('desk.wallet'); } catch { /* storage blocked */ }
+  function renderWallet(state) {
+    const body = $('wallet-body');
+    const phantom = window.phantom && window.phantom.solana && window.phantom.solana.isPhantom ? window.phantom.solana : null;
+    if (!walletAddr) {
+      body.innerHTML = `
+        <p class="verdict muted" style="margin-top:0">See your real Phantom balance next to the paper account. The desk only reads your public address: it can't sign, trade or move funds.</p>
+        ${phantom ? '<button class="btn go" id="w-connect" style="width:100%">Connect Phantom (read-only)</button>' : '<p class="empty">Phantom isn\'t available in this browser. Open the desk inside the Phantom app, or paste your address.</p>'}
+        <div class="wallet-row"><input id="w-addr" placeholder="Solana address" aria-label="Solana address" spellcheck="false" autocapitalize="off"><button class="btn" id="w-watch">Watch</button></div>
+        ${state && state.error ? `<p class="empty down">${state.error}</p>` : ''}`;
+      if ($('w-connect')) $('w-connect').onclick = async () => {
+        try { const r = await phantom.connect(); setWallet(r.publicKey.toString()); } catch { renderWallet({ error: 'Phantom connection was cancelled.' }); }
+      };
+      $('w-watch').onclick = () => {
+        const a = $('w-addr').value.trim();
+        if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a)) setWallet(a); else renderWallet({ error: "That doesn't look like a Solana address." });
+      };
+      return;
+    }
+    const short = walletAddr.slice(0, 4) + '…' + walletAddr.slice(-4);
+    const s = state || {};
+    const margin = desk ? desk.equity * desk.cfg.marginPct : 100;
+    body.innerHTML = `
+      <p class="mono muted" style="margin:0;font-size:11px">${short} · solana mainnet</p>
+      <div class="wallet-big">${s.usd != null ? money(s.usd) : s.sol != null ? s.sol.toFixed(4) + ' SOL' : s.error ? '—' : 'Loading…'}</div>
+      ${s.sol != null ? `<p class="mono muted" style="margin:0;font-size:12px">${s.sol.toFixed(4)} SOL${s.price ? ' @ ' + money(s.price) : ''}</p>` : ''}
+      ${s.usd ? `<p class="verdict" style="margin-top:8px">One desk trade puts up ${money(margin)} of margin at ${desk.cfg.leverage}×, which is <b>${((margin / s.usd) * 100).toFixed(0)}%</b> of this wallet. At ${desk.cfg.leverage}× a ${((1 / desk.cfg.leverage) * 100).toFixed(0)}% move against you wipes that margin out.</p>` : ''}
+      ${s.error ? `<p class="empty down">${s.error}</p>` : ''}
+      <div class="wallet-row"><button class="btn" id="w-refresh">↻ Refresh</button><button class="btn" id="w-forget">Disconnect</button></div>`;
+    $('w-refresh').onclick = () => loadWallet();
+    $('w-forget').onclick = () => { walletAddr = null; try { localStorage.removeItem('desk.wallet'); } catch { /* ignore */ } try { phantom && phantom.disconnect(); } catch { /* ignore */ } renderWallet(); };
+  }
+  function setWallet(a) {
+    walletAddr = a;
+    try { localStorage.setItem('desk.wallet', a); } catch { /* ignore */ }
+    loadWallet();
+  }
+  async function loadWallet() {
+    renderWallet({});
+    try {
+      const r = await fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getBalance', params: [walletAddr] }) });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message);
+      const sol = j.result.value / 1e9;
+      let price = null;
+      try {
+        const pr = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+        price = (await pr.json()).solana.usd;
+      } catch { /* no price: show SOL only */ }
+      renderWallet({ sol, price, usd: price ? sol * price : null });
+    } catch (e) {
+      renderWallet({ error: "Couldn't reach the Solana network from here. This page may block outside connections; open the desk from your deployed site." });
+    }
+  }
+
+  // ---------- wiring ----------
+  $('go').onclick = () => (running ? stop(false) : start());
+  $('reset').onclick = () => { stop(false); newDesk(); };
+  $('again').onclick = () => { newDesk(); start(); };
+  document.querySelectorAll('[data-speed]').forEach((b) => (b.onclick = () => {
+    speed = Number(b.dataset.speed);
+    document.querySelectorAll('[data-speed]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    schedule();
+  }));
+  const levHint = () => {
+    const L = settings.cfg.leverage;
+    $('lev-v').textContent = L + '×';
+    $('lev-h').textContent = `Liquidation about ${((1 / L - 0.005) * 100).toFixed(1)}% above entry. Each trade risks ${money(desk ? desk.equity * 0.1 : 100)} of margin.`;
+  };
+  $('lev').oninput = (e) => { settings.cfg.leverage = Number(e.target.value); levHint(); desk.cfg.leverage = settings.cfg.leverage; };
+  $('edge').oninput = (e) => {
+    settings.cfg.edgePerBar = Number(e.target.value) / 100000;
+    $('edge-v').textContent = (settings.cfg.edgePerBar * 100).toFixed(3) + '%/bar';
+    desk.cfg.edgePerBar = settings.cfg.edgePerBar;
+  };
+  function setToggle(key, on) {
+    settings.toggles[key] = on;
+    desk.toggles[key] = on;
+    renderQuick();
+    render();
+    if (sheetBot) renderSheet();
+  }
+  function renderQuick() {
+    $('quick').innerHTML = Object.keys(SWITCH_LABELS).map((k) => `<button class="tog" data-tog="${k}" aria-pressed="${settings.toggles[k]}"><i></i>${SWITCH_LABELS[k]}</button>`).join('');
+    $('quick').querySelectorAll('[data-tog]').forEach((b) => (b.onclick = () => setToggle(b.dataset.tog, !settings.toggles[b.dataset.tog])));
+  }
+
+  // ---------- bot pages ----------
+  function botLine(a) {
+    const b = desk.bots[a.id];
+    if (a.toggle && !desk.toggles[a.toggle]) return 'switched off';
+    if (a.gate) return `${b.blocked} blocked of ${b.runs} checks`;
+    if (a.id === 'exec') return `${desk.trades.length + (desk.position ? 1 : 0)} filled · ${desk.missed} missed`;
+    if (a.id === 'scribe') return `${desk.trades.length} trades logged`;
+    return `${b.acted} actions · ${b.runs} runs`;
+  }
+  function openSheet(id) {
+    sheetBot = id;
+    renderSheet();
+  }
+  function closeSheet() {
+    sheetBot = null;
+    $('sheet-root').innerHTML = '';
+  }
+  function sheetLive(a) {
+    const b = desk.bots[a.id];
+    const avgTaken = desk.trades.length ? desk.trades.reduce((s, t) => s + t.pnl, 0) / desk.trades.length : null;
+    const shadowAvg = b.shadowN ? b.shadowPnl / b.shadowN : null;
+    const shadow = a.gate ? (b.shadowN
+      ? `<div class="shadow-box">Blocked <b>${b.shadowN}</b> signal${b.shadowN > 1 ? 's' : ''}. Played out on paper, they would have made <b class="${b.shadowPnl >= 0 ? 'up' : 'down'}">${signed(b.shadowPnl)}</b> in total, <b>${signed(shadowAvg)}</b> each.${avgTaken !== null ? ` Trades that got through averaged <b>${signed(avgTaken)}</b> each.` : ''} A gate only earns its place if its blocked trades do worse than the ones it lets through. Blocking any losing-on-average trade looks like a save.</div>`
+      : '<div class="shadow-box muted">Nothing blocked yet this session.</div>') : '';
+    return `<div class="rc-grid"><div class="stat"><b>${b.runs}</b><span>Runs</span></div><div class="stat"><b>${a.gate ? b.blocked : b.acted}</b><span>${a.gate ? 'Blocked' : 'Actions'}</span></div><div class="stat"><b>${desk.trades.length}</b><span>Desk trades</span></div></div>
+      ${shadow}
+      <div><div class="lbl">Recent decisions</div><ul class="log">${b.log.length ? b.log.map((l) => `<li class="${l.tone || ''}">${l.text}</li>`).join('') : '<li>Nothing yet. Start the desk.</li>'}</ul></div>`;
+  }
+  function renderSheet() {
+    const a = AGENTS.find((x) => x.id === sheetBot);
+    const sets = (BOT_SETTINGS[a.id] || []).map(([key, label, min, max, step, mult, unit]) => {
+      const v = settings.cfg[key] ?? DEFAULTS[key];
+      return `<div class="slider"><label for="bs-${key}"><span>${label}</span><span id="bsv-${key}">${(v * mult).toFixed(mult === 100 ? 1 : 1)}${unit === '$M' ? 'M' : unit.startsWith('%') ? unit : ' ' + unit}</span></label>
+        <input id="bs-${key}" data-key="${key}" data-mult="${mult}" data-unit="${unit}" type="range" min="${min}" max="${max}" step="${step}" value="${v}"></div>`;
+    }).join('');
+    const sw = a.toggle ? `<button class="tog" id="sheet-tog" aria-pressed="${desk.toggles[a.toggle]}"><i></i>${desk.toggles[a.toggle] ? 'On' : 'Off'}</button>` : '';
+    const html = `<div class="sheet-bg" id="sheet-bg"><section class="sheet" role="dialog" aria-modal="true" aria-label="${a.name}">
+      <span class="grab" aria-hidden="true"></span>
+      <h3><span class="bot-ico">${a.icon}</span>${a.name}<span class="pill paper" style="margin-left:auto">PAPER</span></h3>
+      <div><div class="lbl">Job</div><p>${a.job}</p></div>
+      <div><div class="lbl">What it does here</div><p class="muted">${a.rule}</p></div>
+      ${sw}
+      ${sets}
+      <div id="sheet-live" aria-live="off">${sheetLive(a)}</div>
+      <button class="btn close" id="sheet-close">Close</button>
+    </section></div>`;
+    $('sheet-root').innerHTML = html;
+    ($('sheet-tog') || $('sheet-close')).focus();
+    $('sheet-bg').onclick = (e) => { if (e.target.id === 'sheet-bg') closeSheet(); };
+    $('sheet-close').onclick = closeSheet;
+    if ($('sheet-tog')) $('sheet-tog').onclick = () => setToggle(a.toggle, !desk.toggles[a.toggle]);
+    $('sheet-root').querySelectorAll('input[type=range]').forEach((inp) => (inp.oninput = () => {
+      const key = inp.dataset.key;
+      const val = Number(inp.value);
+      settings.cfg[key] = val;
+      desk.cfg[key] = val;
+      const mult = Number(inp.dataset.mult), unit = inp.dataset.unit;
+      $('bsv-' + key).textContent = (val * mult).toFixed(1) + (unit === '$M' ? 'M' : unit.startsWith('%') ? unit : ' ' + unit);
+    }));
+  }
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && sheetBot) closeSheet(); });
+  document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => {
+    tab = b.dataset.tab;
+    document.querySelectorAll('[data-tab]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', String(x === b)); });
+    renderTab();
+  }));
+  $('rc-go').onclick = runReality;
+  addEventListener('resize', () => render());
+
+  buildPipeline();
+  renderQuick();
+  newDesk();
+  loadReal();
+  if (walletAddr) loadWallet(); else renderWallet();
+  levHint();
+  // open in a realistic state: a few steps into a session, paused, so the page is not empty
+  for (let i = 0; i < 60 && desk.trades.length < 1; i++) { const ev = desk.step(); ev.forEach(handle); }
+  document.querySelectorAll('.toast').forEach((t) => t.remove());
+  render();
+})();
+</script>
+
+</body>
+</html>

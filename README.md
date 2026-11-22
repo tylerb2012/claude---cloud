@@ -182,3 +182,18 @@ The mini app also runs as a Telegram Mini App. It loads Telegram's SDK in `mini.
 - When a gate blocks a signal, the trade is played out on paper on its own random path so the bot's page can show what blocking saved or cost. Every trade loses on average with zero edge, so blocking anything looks like a save. The useful comparison is blocked trades against trades that went through.
 - The gates can only help because the simulator assumes risk-on markets drift up, crowded shorts get squeezed and headlines cause jumps.
 - Paper only: no exchange connection, no keys, no orders.
+
+## Real-data test (`forward/`)
+
+`npm run forward` tests the wallet-monitor signal on real data, on paper:
+
+1. Downloads Whale Alert's free historical alert archive (about 40 MB) and keeps transfers from a non-exchange wallet into an exchange, worth $1M+, in coins with a Hyperliquid perp (stablecoins excluded).
+2. Opens a paper short at the first 15-minute candle after each alert and runs the desk's exit rules (two-step take-profit, stop, trail, 60-minute limit, fees) on Hyperliquid's real candles.
+3. Runs the same rules at random times on the same coins as a control group.
+4. Writes `public/forward/results.json` (shown on the desk's Real-data test panel) and `forward/REPORT.md`.
+
+Options: `--days 50` (15m candles reach back about 52 days), `--interval 1h --days 200` for a longer window, `--archive file.json.gz` to use a downloaded archive. Node's fetch needs `NODE_USE_ENV_PROXY=1` behind a proxy.
+
+**Results so far (Nov 2026):** whale-alert shorts did worse than random shorts in both windows. Over 50 days on 15m candles: −$1.08 vs −$0.11 per $100-margin trade (205 alerts, t = −2.7). Over 200 days on 1h candles: −$0.90 vs −$0.32 (771 alerts, t = −3.3). Prices tended to rise slightly after big transfers to exchanges. Alerts come in bursts, so the t-statistics overstate certainty, but there is no sign of the edge the strategy needs.
+
+The desk is served at `/desk.html` on the deployed site (built into `public/` by `npm run build:desk`). There its wallet panel can connect Phantom read-only or watch an address; inside the claude.ai page, outside connections are blocked.
