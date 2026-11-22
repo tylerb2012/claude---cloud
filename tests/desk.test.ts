@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULTS, Desk, realityCheck } from '../desk/engine.js';
+import { DEFAULT_TOGGLES, DEFAULTS, Desk, makeBar, manageBar, newPosition, realityCheck } from '../desk/engine.js';
+
+const ALL_OFF = Object.fromEntries(Object.keys(DEFAULT_TOGGLES).map((k) => [k, false]));
 
 describe('trading desk engine', () => {
   it('is reproducible from a seed', () => {
@@ -12,7 +14,7 @@ describe('trading desk engine', () => {
   it('never loses more than the margin on a trade, even when liquidated at 20x', () => {
     let liqs = 0;
     for (let seed = 1; seed <= 300; seed++) {
-      const d = new Desk({ leverage: 20, gapChance: 0.05 }, seed, { squeezeGate: false, newsFilter: false }).runToEnd();
+      const d = new Desk({ leverage: 20, gapChance: 0.05 }, seed, ALL_OFF).runToEnd();
       liqs += d.liquidations;
       expect(d.equity).toBeGreaterThanOrEqual(0);
       for (const t of d.trades) {
@@ -29,12 +31,48 @@ describe('trading desk engine', () => {
     expect(d.equity).toBeCloseTo(DEFAULTS.startEquity + sum, 6);
   });
 
-  it('the squeeze gate and news filter block risky signals', () => {
+  it('the gate bots block signals, and switching them off lets everything through', () => {
     const on = new Desk({}, 5).runToEnd();
-    const off = new Desk({}, 5, { squeezeGate: false, newsFilter: false }).runToEnd();
-    expect(on.blocked.squeeze + on.blocked.news).toBeGreaterThan(0);
-    expect(off.blocked.squeeze + off.blocked.news).toBe(0);
+    const off = new Desk({}, 5, ALL_OFF).runToEnd();
+    expect(on.totalBlocked).toBeGreaterThan(0);
+    expect(off.totalBlocked).toBe(0);
     expect(off.trades.length).toBeGreaterThan(on.trades.length);
+  });
+
+  it('every bot runs and keeps a scoreboard', () => {
+    const d = new Desk({}, 11).runToEnd();
+    for (const [id, b] of Object.entries(d.bots)) expect(b.runs, id).toBeGreaterThan(0);
+  });
+
+  it('a blocked trade is played out on paper without touching equity', () => {
+    const d = new Desk({}, 12).runToEnd();
+    const sum = d.trades.reduce((s, t) => s + t.pnl, 0);
+    expect(d.equity).toBeCloseTo(DEFAULTS.startEquity + sum, 6);
+    expect(Object.values(d.bots).some((b) => b.shadowN > 0)).toBe(true);
+  });
+
+  it('Liq Mapper moves take-profit 2 to the long cluster', () => {
+    let moved = 0;
+    for (let seed = 1; seed <= 20; seed++) moved += new Desk({}, seed).runToEnd().bots.liq.acted;
+    expect(moved).toBeGreaterThan(0);
+    let off = 0;
+    for (let seed = 1; seed <= 20; seed++) off += new Desk({}, seed, { liqTarget: false }).runToEnd().bots.liq.acted;
+    expect(off).toBe(0);
+  });
+
+  it('a gap through the stop fills at the open, worse than the stop', () => {
+    const c = { ...DEFAULTS };
+    const p = newPosition({ funding: 0 }, 100, 100, c);
+    const r = manageBar(p, { o: 103, h: 104, l: 102.5, c: 103.5, vol: 1 }, c);
+    expect(r.closed).toBe('stop (gapped)');
+    expect(r.exits[0].price).toBe(103);
+  });
+
+  it('makeBar keeps high above and low below the body', () => {
+    const rng = { next: () => 0.5, range: (a: number) => a, int: () => 0, pick: (x: unknown[]) => x[0], normal: () => 0.3 };
+    const b = makeBar(100, 0, null, rng, DEFAULTS);
+    expect(b.h).toBeGreaterThanOrEqual(Math.max(b.o, b.c));
+    expect(b.l).toBeLessThanOrEqual(Math.min(b.o, b.c));
   });
 
   it('with no assumed edge the desk loses money on average', () => {

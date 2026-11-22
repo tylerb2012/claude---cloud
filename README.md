@@ -178,5 +178,7 @@ The mini app also runs as a Telegram Mini App. It loads Telegram's SDK in `mini.
 - `desk/engine.js`: the engine (no DOM). Tests are in `tests/desk.test.ts`.
 - `desk/ui.html`: the page. `npm run build:desk` inlines the engine into one file in `dist-desk/`.
 - **Assumed signal edge** defaults to 0, because nobody has shown the wallet-monitor signal predicts anything. With 0 edge every setting loses money on average; in the default setup 72% of 1,000 sessions end below the start. Break-even needs roughly 0.02% of favorable drift per bar.
-- The gates help only because the simulator assumes crowded shorts and headline risk cause more upward gaps.
+- Every agent is a working bot with its own rule, settings and scoreboard (tap it on the page). Wallet Monitor filters small transfers, Macro Scout skips risk-on shorts when the VIX is low, Liq Mapper moves take-profit 2 to the long-liquidation cluster, Funding Watch flags crowding, Squeeze Gate and News Filter block, Sizer halves size when a warning slips through, Executor can miss a post-only fill, TP Manager and Stop Guard run the exits, Scribe logs.
+- When a gate blocks a signal, the trade is played out on paper on its own random path so the bot's page can show what blocking saved or cost. Every trade loses on average with zero edge, so blocking anything looks like a save. The useful comparison is blocked trades against trades that went through.
+- The gates can only help because the simulator assumes risk-on markets drift up, crowded shorts get squeezed and headlines cause jumps.
 - Paper only: no exchange connection, no keys, no orders.

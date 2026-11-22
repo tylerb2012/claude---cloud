@@ -178,6 +178,34 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 .book .bid i { background: var(--up); }
 .book .mid { text-align: center; padding: 6px; font-weight: 800; color: var(--text); border-block: 1px dashed var(--line); }
 
+.hint-line { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
+.agent { cursor: pointer; text-align: left; font: inherit; color: inherit; width: 100%; }
+.agent:hover { border-color: rgba(45, 226, 230, 0.5); }
+.agent.off { opacity: 0.45; border-style: dashed; }
+.botlist li { grid-template-columns: 26px 1fr auto; cursor: pointer; }
+.botlist li:hover { background: var(--panel-2); }
+.sheet-bg { position: fixed; inset: 0; z-index: 70; background: rgba(3, 4, 8, 0.7); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  width: min(560px, 100%); max-height: 90vh; overflow-y: auto; border-radius: 22px 22px 0 0;
+  background: linear-gradient(180deg, #151a27, #0d1017); border: 1px solid var(--line); border-bottom: 0;
+  padding: 10px 18px calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px;
+  animation: rise 240ms ease-out;
+}
+@keyframes rise { from { transform: translateY(30px); opacity: 0; } }
+.sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto; }
+.sheet h3 { margin: 0; font: 700 22px var(--display); display: flex; align-items: center; gap: 10px; }
+.sheet .bot-ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; background: var(--panel-2); border: 1px solid var(--cyan); box-shadow: 0 0 20px -6px var(--cyan); }
+.sheet p { margin: 0; line-height: 1.5; }
+.sheet .lbl { font: 700 10px var(--mono); letter-spacing: 0.14em; color: var(--violet); text-transform: uppercase; }
+.sheet .log { list-style: none; margin: 0; padding: 0; font: 500 12px var(--mono); display: grid; gap: 4px; }
+.sheet .log li { padding: 6px 8px; border-radius: 8px; background: var(--panel-2); }
+.sheet .log li.ok { color: var(--up); }
+.sheet .log li.bad, .sheet .log li.block { color: var(--down); }
+.sheet .log li.warn { color: var(--amber); }
+.shadow-box { padding: 12px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); font-size: 13px; line-height: 1.5; }
+.sheet .close { width: 100%; }
+@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+
 /* Reality check */
 #hist { width: 100%; height: 150px; display: block; margin-top: 10px; }
 .rc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
@@ -262,10 +290,8 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
       <input id="edge" type="range" min="0" max="50" step="1" value="0">
       <span class="hint">0 means the wallet monitor predicts nothing, which is all anyone has shown. Raise it to see how much edge the setup would need.</span>
     </div>
-    <div class="toggles">
-      <button class="tog" id="t-squeeze" aria-pressed="true"><i></i>Squeeze gate</button>
-      <button class="tog" id="t-news" aria-pressed="true"><i></i>News filter</button>
-    </div>
+    <div class="toggles" id="quick" aria-label="Bot switches"></div>
+    <p class="hint-line">Tap any bot in the pipeline to open its page: what it does, its settings and its scoreboard.</p>
   </section>
 
   <section class="panel banner span2" id="banner" aria-live="polite">
@@ -300,6 +326,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
       <button data-tab="book" role="tab" aria-selected="false">Order book</button>
       <button data-tab="fills" role="tab" aria-selected="false">Fills</button>
       <button data-tab="trades" role="tab" aria-selected="false">Trades</button>
+      <button data-tab="bots" role="tab" aria-selected="false">Bots</button>
     </div>
     <div id="tab-body"></div>
   </section>
@@ -312,7 +339,8 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
   </section>
 
   <footer class="foot span2">
-    <p><strong>Everything here is simulated.</strong> Prices are a random walk generated in your browser. The wallets, transfers, order book and funding are made up. Nothing connects to Hyperliquid or any exchange, and no orders are placed. Macro Scout and Liq Mapper are display-only. The squeeze gate and news filter help only because this simulator assumes crowded shorts and headline risk cause more upward gaps. Post-only entries and take-profits pay a 0.015% maker fee; stops, time exits and liquidations pay 0.045% taker.</p>
+    <p><strong>Everything here is simulated.</strong> Prices are a random walk generated in your browser. The wallets, transfers, order book and funding are made up. Nothing connects to Hyperliquid or any exchange, and no orders are placed. Each bot really acts: gates block signals, Liq Mapper moves take-profit 2, Sizer cuts size, Executor can miss fills. The gates can only help because this simulator assumes risk-on markets drift up, crowded shorts get squeezed and headlines cause jumps. Those are assumptions, not measurements. Post-only entries and take-profits pay a 0.015% maker fee; stops, time exits and liquidations pay 0.045% taker.</p>
+    <div id="sheet-root"></div>
     <p>Posts that show a bot's best trades with real-looking dollar amounts are marketing. A bot that really front-ran insider selling would not be sold to strangers.</p>
   </footer>
 </div>
@@ -329,13 +357,26 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
   const pct = (n, d = 2) => (n >= 0 ? '+' : '−') + Math.abs(n * 100).toFixed(d) + '%';
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
-  const settings = { leverage: 10, edgePerBar: 0, squeezeGate: true, newsFilter: true };
+  const settings = { cfg: { leverage: 10, edgePerBar: 0 }, toggles: { ...DEFAULT_TOGGLES } };
+  let sheetBot = null;
+  const SWITCH_LABELS = { monitorFilter: 'Min size', macroGate: 'Macro gate', liqTarget: 'Liq target', squeezeGate: 'Squeeze gate', newsFilter: 'News filter', sizerCut: 'Size cut' };
+  /** Per-bot settings: [cfg key, label, min, max, step, display multiplier, unit] */
+  const BOT_SETTINGS = {
+    monitor: [['minAlertUsdM', 'Minimum transfer', 0, 10, 0.5, 1, '$M']],
+    macro: [['macroVixMin', 'Skip risk-on shorts when VIX is under', 10, 25, 0.5, 1, '']],
+    liq: [['liqTargetMax', 'Use the cluster if within', 0.02, 0.06, 0.005, 100, '%']],
+    funding: [['crowdOi', 'Crowded when open interest rose', 0.02, 0.15, 0.01, 100, '%']],
+    sizer: [['marginPct', 'Margin per trade', 0.02, 0.25, 0.01, 100, '% of equity']],
+    exec: [['postOnlyFill', 'Post-only fill chance per bar', 0.3, 1, 0.05, 100, '%']],
+    tp: [['tp1', 'Take-profit 1', 0.005, 0.03, 0.001, 100, '%'], ['tp2', 'Take-profit 2', 0.01, 0.05, 0.001, 100, '%']],
+    stopguard: [['stop', 'Initial stop', 0.004, 0.03, 0.001, 100, '%'], ['trail', 'Trail distance', 0.004, 0.03, 0.001, 100, '%']],
+  };
   let desk, running = false, speed = 1, timer = null, tab = 'feed';
   let agentState = {}, activeAgent = null, activeUntil = 0;
 
   function newDesk() {
     const seed = Math.floor(Math.random() * 1e9);
-    desk = new Desk({ leverage: settings.leverage, edgePerBar: settings.edgePerBar }, seed, { squeezeGate: settings.squeezeGate, newsFilter: settings.newsFilter });
+    desk = new Desk({ ...settings.cfg }, seed, { ...settings.toggles });
     agentState = {};
     AGENTS.forEach((a) => (agentState[a.id] = { text: 'idle', tone: null }));
     $('banner').classList.remove('show');
@@ -353,8 +394,9 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     });
     $('pipeline').innerHTML = stages.map((s) => `
       <div class="stage"><div class="stage-name">${s.name}</div><div class="agents">
-        ${s.agents.map((a) => `<div class="agent" id="ag-${a.id}"><div class="nm"><i class="led"></i>${a.icon} ${a.name}</div><div class="st" id="st-${a.id}">idle</div></div>`).join('')}
+        ${s.agents.map((a) => `<button class="agent" id="ag-${a.id}" data-bot="${a.id}" aria-label="${a.name}: open bot page"><div class="nm"><i class="led"></i>${a.icon} ${a.name}</div><div class="st" id="st-${a.id}">idle</div></button>`).join('')}
       </div></div>`).join('');
+    document.querySelectorAll('[data-bot]').forEach((b) => (b.onclick = () => openSheet(b.dataset.bot)));
   }
 
   // ---------- ticking ----------
@@ -372,6 +414,8 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
       activeUntil = performance.now() + 700;
     } else if (e.type === 'blocked') {
       toast('⛔ ' + e.text, 'block');
+    } else if (e.type === 'missed') {
+      toast('⌛ ' + e.text, 'block');
     } else if (e.type === 'open') {
       toast('⚡ ' + e.text, 'ok');
     } else if (e.type === 'closed') {
@@ -379,7 +423,6 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
       toast(`${t.pnl >= 0 ? '✅' : '❌'} ${t.sym} ${t.reason} ${signed(t.pnl)} (${pct(t.roe, 1)} ROE)`, t.pnl >= 0 ? 'ok' : 'bad');
       if (t.reason === 'liquidated') redFlash();
       if (t.reason === 'take-profit 2') confetti();
-      AGENTS.slice(1).forEach((a) => { if (!['scribe'].includes(a.id)) agentState[a.id].tone = agentState[a.id].tone === 'block' ? null : agentState[a.id].tone; });
     }
   }
 
@@ -415,7 +458,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     const tr = desk.trades;
     $('s-trades').textContent = tr.length;
     $('s-win').textContent = tr.length ? Math.round((tr.filter((t) => t.pnl > 0).length / tr.length) * 100) + '%' : '0%';
-    $('s-block').textContent = desk.blocked.squeeze + desk.blocked.news;
+    $('s-block').textContent = desk.totalBlocked;
     $('s-liq').textContent = desk.liquidations;
     $('sig-count').textContent = `${desk.signals} / ${desk.cfg.signalsPerSession} signals`;
     const bars = desk.chart ? desk.chart.bars.length : 0;
@@ -430,7 +473,8 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     AGENTS.forEach((a) => {
       const el = $('ag-' + a.id);
       const s = agentState[a.id];
-      el.className = 'agent' + (s.tone ? ' ' + s.tone : '') + (activeAgent === a.id && now < activeUntil ? ' active' : '');
+      const off = a.toggle && !desk.toggles[a.toggle];
+      el.className = 'agent' + (s.tone ? ' ' + s.tone : '') + (off ? ' off' : '') + (activeAgent === a.id && now < activeUntil ? ' active' : '');
       $('st-' + a.id).textContent = s.text;
     });
     const st = desk.state;
@@ -452,6 +496,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     drawSpark();
     drawChart();
     renderTab();
+    if (sheetBot && $('sheet-live')) $('sheet-live').innerHTML = sheetLive(AGENTS.find((x) => x.id === sheetBot));
   }
 
   function sizeCanvas(cv) {
@@ -554,6 +599,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
       ctx.fillRect(x(i) - cw * 0.32, Math.min(yo, yc), cw * 0.64, Math.max(1, Math.abs(yc - yo)));
     });
     // levels
+    const usedTags = [];
     const level = (p, colVar, label, dash) => {
       if (!p) return;
       const yy = y(p);
@@ -561,10 +607,14 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
       ctx.strokeStyle = css(colVar); ctx.lineWidth = 1.2;
       ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(w - padR, yy); ctx.stroke();
       ctx.setLineDash([]);
+      // keep the right-edge tags from stacking on each other (e.g. stop moved to breakeven)
+      let ty = yy;
+      while (usedTags.some((u) => Math.abs(u - ty) < 17)) ty += 17;
+      usedTags.push(ty);
       ctx.fillStyle = css(colVar);
-      ctx.fillRect(w - padR + 2, yy - 8, padR - 4, 16);
+      ctx.fillRect(w - padR + 2, ty - 8, padR - 4, 16);
       ctx.fillStyle = '#06070b';
-      ctx.fillText(label, w - padR + 5, yy + 3);
+      ctx.fillText(label, w - padR + 5, ty + 3);
     };
     level(lines.tp2, '--up', 'TP2', true);
     level(lines.tp1, '--up', 'TP1', true);
@@ -593,7 +643,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     const body = $('tab-body');
     if (tab === 'feed') {
       body.innerHTML = desk.feed.length
-        ? `<ul class="list feed">${desk.feed.map((s) => `<li><span>🐋 <b>${s.entity}</b> ${s.wallet} sent <b>${s.amount} of ${s.asset.sym}</b> → ${s.dest}</span><span class="tag ${s.blockedBy || 'pass'}">${s.blockedBy ? 'BLOCKED' : 'SHORT'}</span></li>`).join('')}</ul>`
+        ? `<ul class="list feed">${desk.feed.map((s) => `<li><span>🐋 <b>${s.entity}</b> ${s.wallet} sent <b>${s.amount} of ${s.asset.sym}</b> → ${s.dest}</span><span class="tag ${s.blockedBy || 'pass'}">${s.blockedBy === 'missed' ? 'MISSED' : s.blockedBy ? 'BLOCKED' : 'SHORT'}</span></li>`).join('')}</ul>`
         : '<p class="empty">No alerts yet. Press Start.</p>';
     } else if (tab === 'book') {
       if (!desk.chart) { body.innerHTML = '<p class="empty">No market loaded yet.</p>'; return; }
@@ -611,6 +661,9 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
       body.innerHTML = desk.fills.length
         ? `<ul class="list fills">${desk.fills.map((f) => `<li><span class="${f.side === 'SELL' ? 'down' : 'up'}">${f.side}</span><b>${f.sym}</b><span class="muted">${f.note}</span><span>${f.price.toFixed(f.dec)}</span></li>`).join('')}</ul>`
         : '<p class="empty">No fills yet.</p>';
+    } else if (tab === 'bots') {
+      body.innerHTML = `<ul class="list botlist">${AGENTS.map((a) => `<li data-open="${a.id}"><span>${a.icon}</span><span><b>${a.name}</b> <span class="muted">${botLine(a)}</span></span><span class="muted">›</span></li>`).join('')}</ul>`;
+      body.querySelectorAll('[data-open]').forEach((li) => (li.onclick = () => openSheet(li.dataset.open)));
     } else {
       body.innerHTML = desk.trades.length
         ? `<ul class="list trades">${desk.trades.map((t) => `<li><b>${t.sym}</b><span class="muted">${t.reason} · ${t.bars}m · ${t.lev}×</span><span class="${t.pnl >= 0 ? 'up' : 'down'}">${signed(t.pnl)}</span></li>`).join('')}</ul>`
@@ -621,7 +674,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
   function showBanner() {
     const eq = desk.equity, s0 = desk.cfg.startEquity;
     const tr = desk.trades;
-    $('banner-text').innerHTML = `Equity <b class="${eq >= s0 ? 'up' : 'down'}">${money(eq)}</b> (${pct(eq / s0 - 1)}) after ${desk.signals} signals: ${tr.length} trades, ${desk.blocked.squeeze + desk.blocked.news} blocked by the gates, ${desk.liquidations} liquidated, ${money(desk.feesPaid)} in fees. One session is mostly luck. Run the reality check to see the average.`;
+    $('banner-text').innerHTML = `Equity <b class="${eq >= s0 ? 'up' : 'down'}">${money(eq)}</b> (${pct(eq / s0 - 1)}) after ${desk.signals} signals: ${tr.length} trades, ${desk.totalBlocked} blocked by the gates, ${desk.missed} missed fills, ${desk.liquidations} liquidated, ${money(desk.feesPaid)} in fees. One session is mostly luck. Run the reality check to see the average.`;
     $('banner').classList.add('show');
   }
 
@@ -666,7 +719,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     $('rc-go').textContent = 'Running 1,000 sessions…';
     $('rc-go').disabled = true;
     setTimeout(() => {
-      const r = realityCheck({ leverage: settings.leverage, edgePerBar: settings.edgePerBar }, { squeezeGate: settings.squeezeGate, newsFilter: settings.newsFilter }, 1000);
+      const r = realityCheck({ ...settings.cfg }, { ...settings.toggles }, 1000);
       $('rc-go').textContent = 'Run reality check again';
       $('rc-go').disabled = false;
       const s0 = r.start;
@@ -719,23 +772,89 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     schedule();
   }));
   const levHint = () => {
-    const L = settings.leverage;
+    const L = settings.cfg.leverage;
     $('lev-v').textContent = L + '×';
     $('lev-h').textContent = `Liquidation about ${((1 / L - 0.005) * 100).toFixed(1)}% above entry. Each trade risks ${money(desk ? desk.equity * 0.1 : 100)} of margin.`;
   };
-  $('lev').oninput = (e) => { settings.leverage = Number(e.target.value); levHint(); desk.cfg.leverage = settings.leverage; };
+  $('lev').oninput = (e) => { settings.cfg.leverage = Number(e.target.value); levHint(); desk.cfg.leverage = settings.cfg.leverage; };
   $('edge').oninput = (e) => {
-    settings.edgePerBar = Number(e.target.value) / 100000;
-    $('edge-v').textContent = (settings.edgePerBar * 100).toFixed(3) + '%/bar';
-    desk.cfg.edgePerBar = settings.edgePerBar;
+    settings.cfg.edgePerBar = Number(e.target.value) / 100000;
+    $('edge-v').textContent = (settings.cfg.edgePerBar * 100).toFixed(3) + '%/bar';
+    desk.cfg.edgePerBar = settings.cfg.edgePerBar;
   };
-  const tog = (id, key) => ($(id).onclick = () => {
-    settings[key] = !settings[key];
-    $(id).setAttribute('aria-pressed', String(settings[key]));
-    desk.toggles[key] = settings[key];
-  });
-  tog('t-squeeze', 'squeezeGate');
-  tog('t-news', 'newsFilter');
+  function setToggle(key, on) {
+    settings.toggles[key] = on;
+    desk.toggles[key] = on;
+    renderQuick();
+    render();
+    if (sheetBot) renderSheet();
+  }
+  function renderQuick() {
+    $('quick').innerHTML = Object.keys(SWITCH_LABELS).map((k) => `<button class="tog" data-tog="${k}" aria-pressed="${settings.toggles[k]}"><i></i>${SWITCH_LABELS[k]}</button>`).join('');
+    $('quick').querySelectorAll('[data-tog]').forEach((b) => (b.onclick = () => setToggle(b.dataset.tog, !settings.toggles[b.dataset.tog])));
+  }
+
+  // ---------- bot pages ----------
+  function botLine(a) {
+    const b = desk.bots[a.id];
+    if (a.toggle && !desk.toggles[a.toggle]) return 'switched off';
+    if (a.gate) return `${b.blocked} blocked of ${b.runs} checks`;
+    if (a.id === 'exec') return `${desk.trades.length + (desk.position ? 1 : 0)} filled · ${desk.missed} missed`;
+    if (a.id === 'scribe') return `${desk.trades.length} trades logged`;
+    return `${b.acted} actions · ${b.runs} runs`;
+  }
+  function openSheet(id) {
+    sheetBot = id;
+    renderSheet();
+  }
+  function closeSheet() {
+    sheetBot = null;
+    $('sheet-root').innerHTML = '';
+  }
+  function sheetLive(a) {
+    const b = desk.bots[a.id];
+    const avgTaken = desk.trades.length ? desk.trades.reduce((s, t) => s + t.pnl, 0) / desk.trades.length : null;
+    const shadowAvg = b.shadowN ? b.shadowPnl / b.shadowN : null;
+    const shadow = a.gate ? (b.shadowN
+      ? `<div class="shadow-box">Blocked <b>${b.shadowN}</b> signal${b.shadowN > 1 ? 's' : ''}. Played out on paper, they would have made <b class="${b.shadowPnl >= 0 ? 'up' : 'down'}">${signed(b.shadowPnl)}</b> in total, <b>${signed(shadowAvg)}</b> each.${avgTaken !== null ? ` Trades that got through averaged <b>${signed(avgTaken)}</b> each.` : ''} A gate only earns its place if its blocked trades do worse than the ones it lets through. Blocking any losing-on-average trade looks like a save.</div>`
+      : '<div class="shadow-box muted">Nothing blocked yet this session.</div>') : '';
+    return `<div class="rc-grid"><div class="stat"><b>${b.runs}</b><span>Runs</span></div><div class="stat"><b>${a.gate ? b.blocked : b.acted}</b><span>${a.gate ? 'Blocked' : 'Actions'}</span></div><div class="stat"><b>${desk.trades.length}</b><span>Desk trades</span></div></div>
+      ${shadow}
+      <div><div class="lbl">Recent decisions</div><ul class="log">${b.log.length ? b.log.map((l) => `<li class="${l.tone || ''}">${l.text}</li>`).join('') : '<li>Nothing yet. Start the desk.</li>'}</ul></div>`;
+  }
+  function renderSheet() {
+    const a = AGENTS.find((x) => x.id === sheetBot);
+    const sets = (BOT_SETTINGS[a.id] || []).map(([key, label, min, max, step, mult, unit]) => {
+      const v = settings.cfg[key] ?? DEFAULTS[key];
+      return `<div class="slider"><label for="bs-${key}"><span>${label}</span><span id="bsv-${key}">${(v * mult).toFixed(mult === 100 ? 1 : 1)}${unit === '$M' ? 'M' : unit.startsWith('%') ? unit : ' ' + unit}</span></label>
+        <input id="bs-${key}" data-key="${key}" data-mult="${mult}" data-unit="${unit}" type="range" min="${min}" max="${max}" step="${step}" value="${v}"></div>`;
+    }).join('');
+    const sw = a.toggle ? `<button class="tog" id="sheet-tog" aria-pressed="${desk.toggles[a.toggle]}"><i></i>${desk.toggles[a.toggle] ? 'On' : 'Off'}</button>` : '';
+    const html = `<div class="sheet-bg" id="sheet-bg"><section class="sheet" role="dialog" aria-modal="true" aria-label="${a.name}">
+      <span class="grab" aria-hidden="true"></span>
+      <h3><span class="bot-ico">${a.icon}</span>${a.name}<span class="pill paper" style="margin-left:auto">PAPER</span></h3>
+      <div><div class="lbl">Job</div><p>${a.job}</p></div>
+      <div><div class="lbl">What it does here</div><p class="muted">${a.rule}</p></div>
+      ${sw}
+      ${sets}
+      <div id="sheet-live" aria-live="off">${sheetLive(a)}</div>
+      <button class="btn close" id="sheet-close">Close</button>
+    </section></div>`;
+    $('sheet-root').innerHTML = html;
+    ($('sheet-tog') || $('sheet-close')).focus();
+    $('sheet-bg').onclick = (e) => { if (e.target.id === 'sheet-bg') closeSheet(); };
+    $('sheet-close').onclick = closeSheet;
+    if ($('sheet-tog')) $('sheet-tog').onclick = () => setToggle(a.toggle, !desk.toggles[a.toggle]);
+    $('sheet-root').querySelectorAll('input[type=range]').forEach((inp) => (inp.oninput = () => {
+      const key = inp.dataset.key;
+      const val = Number(inp.value);
+      settings.cfg[key] = val;
+      desk.cfg[key] = val;
+      const mult = Number(inp.dataset.mult), unit = inp.dataset.unit;
+      $('bsv-' + key).textContent = (val * mult).toFixed(1) + (unit === '$M' ? 'M' : unit.startsWith('%') ? unit : ' ' + unit);
+    }));
+  }
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && sheetBot) closeSheet(); });
   document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => {
     tab = b.dataset.tab;
     document.querySelectorAll('[data-tab]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', String(x === b)); });
@@ -745,6 +864,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
   addEventListener('resize', () => render());
 
   buildPipeline();
+  renderQuick();
   newDesk();
   levHint();
   // open in a realistic state: a few steps into a session, paused, so the page is not empty
