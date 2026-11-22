@@ -197,3 +197,15 @@ Options: `--days 50` (15m candles reach back about 52 days), `--interval 1h --da
 **Results so far (Nov 2026):** whale-alert shorts did worse than random shorts in both windows. Over 50 days on 15m candles: −$1.08 vs −$0.11 per $100-margin trade (205 alerts, t = −2.7). Over 200 days on 1h candles: −$0.90 vs −$0.32 (771 alerts, t = −3.3). Prices tended to rise slightly after big transfers to exchanges. Alerts come in bursts, so the t-statistics overstate certainty, but there is no sign of the edge the strategy needs.
 
 The desk is served at `/desk.html` on the deployed site (built into `public/` by `npm run build:desk`). There its wallet panel can connect Phantom read-only or watch an address; inside the claude.ai page, outside connections are blocked.
+
+## Strategy lab
+
+The desk's **Strategy lab** panel replays a technique you configure on every real whale alert (Whale Alert's free archive) using Hyperliquid's real hourly candles, on paper:
+
+- Sliders and switches: short or long after the alert, leverage, stop, take-profit 1 (half) and 2 (rest), trailing stop and its distance, maximum hold (1–48h), minimum transfer size, which coins, which exchanges the money went to.
+- Each run compares the alert trades with random entries on the same coins and periods (5 per alert).
+- The last 50 days are held back. A setting shows **PASS** only with a positive average and t ≥ 2 against random in both the older data and the held-back days (at least 30 and 15 trades).
+- `desk/lab.js` is the pure lab engine (tests: `tests/lab.test.ts`, including one that checks the lab detects a planted edge). `npm run lab-data` rebuilds `public/forward/lab-data.json` (about 1.7 MB: 200 days of alerts and hourly candles).
+- Limits: hourly candles make stop/take-profit order within a bar approximate (the adverse side is checked first), funding isn't included, and entries assume a fill at the next hourly open after the alert.
+
+In a 48-setting sweep (Nov 2026), none passed. The best-looking settings on the older data, mostly longs held 1–24 hours, lost money on the held-back days.

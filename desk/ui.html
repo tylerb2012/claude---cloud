@@ -199,6 +199,25 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 .wallet-row { display: flex; gap: 8px; margin-top: 8px; }
 .wallet-row input { flex: 1; min-width: 0; min-height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font: 13px var(--mono); }
 .wallet-big { font: 800 30px var(--mono); letter-spacing: -0.03em; }
+.lab-grid { display: grid; gap: 12px; }
+@media (min-width: 1040px) { .lab-grid { grid-template-columns: 360px 1fr; align-items: start; } }
+.lab-controls { display: grid; gap: 2px; }
+.lab-controls .slider { margin-top: 8px; }
+.chiprow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chiprow button { border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); border-radius: 999px; padding: 6px 11px; font: 700 11px var(--mono); cursor: pointer; }
+.chiprow button[aria-pressed="true"] { color: var(--text); border-color: var(--cyan); box-shadow: 0 0 12px -6px var(--cyan); }
+.lab-label { font: 700 10px var(--mono); letter-spacing: 0.14em; color: var(--violet); text-transform: uppercase; margin-top: 12px; }
+.periods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.period { padding: 12px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--line); }
+.period h4 { margin: 0 0 6px; font: 700 10px var(--mono); letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+.period .big { font: 800 22px var(--mono); }
+.period .row2 { display: flex; justify-content: space-between; font: 500 11px var(--mono); color: var(--muted); margin-top: 4px; gap: 6px; }
+.period .row2 span:last-child { white-space: nowrap; text-align: right; }
+.badge-pass { display: inline-block; font: 800 12px var(--mono); letter-spacing: 0.12em; padding: 6px 12px; border-radius: 999px; }
+.badge-pass.yes { color: #06070b; background: var(--up); box-shadow: 0 0 20px -4px var(--up); }
+.badge-pass.no { color: var(--down); background: rgba(255, 77, 109, 0.12); border: 1px solid rgba(255, 77, 109, 0.4); }
+#lab-curve { width: 100%; height: 170px; display: block; margin-top: 10px; }
+.lab-verdict { margin-top: 10px; font-size: 13px; line-height: 1.55; }
 .hint-line { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
 .agent { cursor: pointer; text-align: left; font: inherit; color: inherit; width: 100%; }
 .agent:hover { border-color: rgba(45, 226, 230, 0.5); }
@@ -352,6 +371,12 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     <div id="tab-body"></div>
   </section>
 
+  <section class="panel span2" aria-label="Strategy lab" id="lab">
+    <div class="head"><h2>Strategy lab</h2><span class="pill live-pill">REAL DATA · PAPER</span></div>
+    <p class="verdict muted" style="margin-top:0">Tune a technique and see how it would have traded every real whale alert on Hyperliquid's real hourly prices, against random entries. The last 50 days are held back: a setting only passes if it also beats random on data it wasn't tuned on.</p>
+    <div id="lab-body"><p class="empty">Loading real data…</p></div>
+  </section>
+
   <section class="panel span2" aria-label="Real-data test" id="real">
     <div class="head"><h2>Real-data test</h2><span class="pill live-pill">REAL PRICES · PAPER</span></div>
     <div id="real-body"><p class="empty">Loading results…</p></div>
@@ -378,6 +403,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
 
 <script>
 /*ENGINE*/
+/*LAB*/
 </script>
 <script>
 (() => {
@@ -793,6 +819,129 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
     ctx.fillStyle = css('--text'); ctx.fillText('start', Math.min(w - 30, xs + 4), 10);
   }
 
+  // ---------- strategy lab ----------
+  let labData = null;
+  const lab = { ...LAB_DEFAULTS, coins: null, exchanges: null };
+  const MIN_STEPS = [1, 2, 5, 10, 20, 50, 100, 200];
+  // [key, label, min, max, step, scale, unit]
+  const LAB_SLIDERS = [
+    ['leverage', 'Leverage', 1, 20, 1, 1, '×'],
+    ['stopPct', 'Stop', 0.003, 0.1, 0.001, 100, '%'],
+    ['tp1Pct', 'Take-profit 1 (half)', 0.003, 0.1, 0.001, 100, '%'],
+    ['tp2Pct', 'Take-profit 2 (rest)', 0.005, 0.2, 0.001, 100, '%'],
+    ['trailPct', 'Trail distance after TP1', 0.003, 0.05, 0.001, 100, '%'],
+    ['holdHours', 'Hold for at most', 1, 48, 1, 1, 'h'],
+  ];
+  async function loadLab() {
+    try {
+      const res = await fetch('forward/lab-data.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      labData = await res.json();
+      buildLab();
+      runLabNow();
+    } catch {
+      $('lab-body').innerHTML = '<p class="empty">No lab data here. Run <code>npm run lab-data</code> in the repo, or open the desk on your deployed site.</p>';
+    }
+  }
+  function fmtLab(key, v) {
+    const s = LAB_SLIDERS.find((x) => x[0] === key);
+    return s[5] === 100 ? (v * 100).toFixed(1) + '%' : v + s[6];
+  }
+  function buildLab() {
+    const coins = Object.keys(labData.coins);
+    const exs = [...new Set(labData.alerts.map((a) => a[3]))];
+    const chips = (kind, list) => list.map((v) => `<button data-${kind}="${v}" aria-pressed="true">${v}</button>`).join('');
+    $('lab-body').innerHTML = `<div class="lab-grid">
+      <div class="lab-controls">
+        <div class="lab-label">Direction</div>
+        <div class="seg" role="group" aria-label="Direction" style="width:max-content">
+          <button data-side="short" class="on" aria-pressed="true">Short after alert</button><button data-side="long" aria-pressed="false">Long after alert</button>
+        </div>
+        ${LAB_SLIDERS.map(([k, label, min, max, step]) => `<div class="slider"><label for="lab-${k}"><span>${label}</span><span id="labv-${k}">${fmtLab(k, lab[k])}</span></label><input id="lab-${k}" data-lab="${k}" type="range" min="${min}" max="${max}" step="${step}" value="${lab[k]}"></div>`).join('')}
+        <div class="slider"><label for="lab-min"><span>Minimum transfer</span><span id="labv-min">$${lab.minUsdM}M</span></label><input id="lab-min" type="range" min="0" max="${MIN_STEPS.length - 1}" step="1" value="0"></div>
+        <div class="toggles" style="margin-top:10px"><button class="tog" id="lab-trail" aria-pressed="${lab.trail}"><i></i>Trailing stop after TP1</button></div>
+        <div class="lab-label">Coins</div><div class="chiprow">${chips('coin', coins)}</div>
+        <div class="lab-label">Sent to</div><div class="chiprow">${chips('ex', exs)}</div>
+        <button class="btn" id="lab-reset" style="margin-top:12px">Reset to desk settings</button>
+      </div>
+      <div id="lab-out" aria-live="polite"></div>
+    </div>`;
+    document.querySelectorAll('[data-side]').forEach((b) => (b.onclick = () => {
+      lab.side = b.dataset.side;
+      document.querySelectorAll('[data-side]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+      runLabSoon();
+    }));
+    document.querySelectorAll('[data-lab]').forEach((inp) => (inp.oninput = () => {
+      const k = inp.dataset.lab;
+      lab[k] = Number(inp.value);
+      $('labv-' + k).textContent = fmtLab(k, lab[k]);
+      runLabSoon();
+    }));
+    $('lab-min').oninput = (e) => { lab.minUsdM = MIN_STEPS[Number(e.target.value)]; $('labv-min').textContent = '$' + lab.minUsdM + 'M'; runLabSoon(); };
+    $('lab-trail').onclick = () => { lab.trail = !lab.trail; $('lab-trail').setAttribute('aria-pressed', String(lab.trail)); runLabSoon(); };
+    const multi = (attr, key) => document.querySelectorAll(`[data-${attr}]`).forEach((b) => (b.onclick = () => {
+      b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+      const on = [...document.querySelectorAll(`[data-${attr}][aria-pressed="true"]`)].map((x) => x.dataset[attr]);
+      lab[key] = on.length === document.querySelectorAll(`[data-${attr}]`).length ? null : on;
+      runLabSoon();
+    }));
+    multi('coin', 'coins');
+    multi('ex', 'exchanges');
+    $('lab-reset').onclick = () => { Object.assign(lab, LAB_DEFAULTS, { coins: null, exchanges: null }); buildLab(); runLabNow(); };
+  }
+  let labTimer;
+  function runLabSoon() { clearTimeout(labTimer); labTimer = setTimeout(runLabNow, 120); }
+  function runLabNow() {
+    if (!labData) return;
+    const r = runLab(labData, lab);
+    const p = (x) => (x >= 0 ? '+' : '−') + money(Math.abs(x));
+    const when = (ts) => new Date(ts * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const per = (name, s) => `<div class="period"><h4>${name}</h4>
+      <div class="big ${s.signal.mean >= 0 ? 'up' : 'down'}">${p(s.signal.mean)}</div>
+      <div class="row2"><span>per trade · ${s.signal.n} trades</span><span>${Math.round(s.signal.win * 100)}% win</span></div>
+      <div class="row2"><span>Random entries</span><span class="${s.random.mean >= 0 ? 'up' : 'down'}">${p(s.random.mean)}</span></div>
+      <div class="row2"><span>Beat random by</span><span>t = ${s.t.toFixed(2)}</span></div>
+      <div class="row2"><span>Total</span><span class="${s.signal.total >= 0 ? 'up' : 'down'}">${p(s.signal.total)}</span></div></div>`;
+    let verdict;
+    if (r.pass) verdict = 'This setting made money and beat random entries on the older data and on the 50 held-back days. That is the first real evidence of an edge. Keep it fixed and watch it on new alerts before risking anything.';
+    else if (r.train.signal.n < 30 || r.test.signal.n < 15) verdict = 'Too few trades to judge. Widen the filters.';
+    else if (r.train.t >= 2 && r.test.t < 2) verdict = 'Looks good on the older data but fails on the held-back days. That pattern usually means the sliders fit past noise, not a real edge.';
+    else if (r.train.signal.mean <= 0 && r.test.signal.mean <= 0) verdict = 'Loses money in both periods.';
+    else verdict = "Doesn't beat random entries clearly in both periods.";
+    $('lab-out').innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge-pass ${r.pass ? 'yes' : 'no'}">${r.pass ? 'PASS' : 'NO EDGE'}</span>
+      <span class="muted mono" style="font-size:11px">$${lab.marginUsd} margin per trade · fees included · funding not included</span></div>
+      <div class="periods" style="margin-top:10px">${per('Older data · until ' + when(labData.splitTs), r.train)}${per('Held back · last ' + labData.holdoutDays + ' days', r.test)}</div>
+      <canvas id="lab-curve" aria-label="Running profit of the alert trades over time"></canvas>
+      <p class="lab-verdict">${verdict} <span class="muted">Pass rule: positive average and t ≥ 2 against random in both periods, with at least 30 and 15 trades.</span></p>`;
+    drawLabCurve(r);
+  }
+  function drawLabCurve(r) {
+    const { ctx, w, h } = sizeCanvas($('lab-curve'));
+    ctx.clearRect(0, 0, w, h);
+    const tr = r.trades;
+    if (!tr.length) return;
+    const t0 = labData.alerts[0][0], t1 = Math.max(...tr.map((x) => x.ts), labData.splitTs);
+    let cum = 0, cumR = 0;
+    const pts = tr.map((x) => { cum += x.pnl; cumR += x.period === 'test' ? r.test.random.mean : r.train.random.mean; return { ts: x.ts, v: cum, rv: cumR }; });
+    const lo = Math.min(0, ...pts.map((q) => Math.min(q.v, q.rv))), hi = Math.max(0, ...pts.map((q) => Math.max(q.v, q.rv)));
+    const x = (ts) => 4 + ((ts - t0) / (t1 - t0 || 1)) * (w - 8);
+    const y = (v) => 8 + (1 - (v - lo) / (hi - lo || 1)) * (h - 22);
+    ctx.fillStyle = 'rgba(139,92,246,0.10)';
+    ctx.fillRect(x(labData.splitTs), 0, w - x(labData.splitTs), h - 14);
+    ctx.fillStyle = css('--muted'); ctx.font = '10px ' + css('--mono');
+    ctx.fillText('held back', x(labData.splitTs) + 6, 12);
+    ctx.strokeStyle = css('--line'); ctx.beginPath(); ctx.moveTo(0, y(0)); ctx.lineTo(w, y(0)); ctx.stroke();
+    ctx.setLineDash([4, 4]); ctx.strokeStyle = css('--muted');
+    ctx.beginPath(); pts.forEach((q, i) => (i ? ctx.lineTo(x(q.ts), y(q.rv)) : ctx.moveTo(x(q.ts), y(q.rv)))); ctx.stroke(); ctx.setLineDash([]);
+    const col = cum >= 0 ? css('--up') : css('--down');
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.shadowColor = col; ctx.shadowBlur = 8;
+    ctx.beginPath(); pts.forEach((q, i) => (i ? ctx.lineTo(x(q.ts), y(q.v)) : ctx.moveTo(x(q.ts), y(q.v)))); ctx.stroke(); ctx.shadowBlur = 0; ctx.lineWidth = 1;
+    ctx.fillStyle = css('--muted');
+    ctx.fillText(new Date(t0 * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), 4, h - 2);
+    ctx.fillText('— alert trades   - - random', w - 150, h - 2);
+  }
+
   // ---------- real-data test ----------
   async function loadReal() {
     const body = $('real-body');
@@ -1002,6 +1151,7 @@ canvas.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointe
   renderQuick();
   newDesk();
   loadReal();
+  loadLab();
   if (walletAddr) loadWallet(); else renderWallet();
   levHint();
   // open in a realistic state: a few steps into a session, paused, so the page is not empty

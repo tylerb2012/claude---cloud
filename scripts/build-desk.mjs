@@ -3,11 +3,12 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 const engine = readFileSync('desk/engine.js', 'utf8').replace(/^export /gm, '');
+const lab = readFileSync('desk/lab.js', 'utf8').replace(/^import .*$/gm, '').replace(/^export /gm, '');
 const ui = readFileSync('desk/ui.html', 'utf8');
 if (!ui.includes('/*ENGINE*/')) throw new Error('placeholder missing');
 const out = process.argv[2] ?? 'dist-desk/venue-desk.html';
 mkdirSync(dirname(out), { recursive: true });
-const page = ui.replace('/*ENGINE*/', () => engine);
+const page = ui.replace('/*ENGINE*/', () => engine).replace('/*LAB*/', () => lab);
 writeFileSync(out, page);
 console.log('wrote', out);
 // a full HTML document for the deployed site (served at /desk.html next to /forward/results.json)

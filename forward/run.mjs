@@ -11,22 +11,11 @@
  * Usage: node forward/run.mjs [--archive path.json.gz] [--days 50]
  * Without --archive it downloads https://whale-alert.io/whale-alerts-archive.json.gzip.
  */
-import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { pipeline } from 'node:stream/promises';
-import { createGunzip } from 'node:zlib';
-import StreamArray from 'stream-json/streamers/StreamArray.js';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { createRng, DEFAULTS, manageBar, newPosition } from '../desk/engine.js';
+import { arg, getArchive, hl, readSignals } from './lib.mjs';
 
-const ARCHIVE_URL = 'https://whale-alert.io/whale-alerts-archive.json.gzip';
-const HL = 'https://api.hyperliquid.xyz/info';
-const arg = (k, d) => {
-  const i = process.argv.indexOf(`--${k}`);
-  return i >= 0 ? process.argv[i + 1] : d;
-};
 const DAYS = Number(arg('days', 50));
-const MIN_USD = 1_000_000;
 const INTERVAL = arg('interval', '15m');
 const BAR_MIN = { '5m': 5, '15m': 15, '1h': 60 }[INTERVAL];
 if (!BAR_MIN) throw new Error('--interval must be 5m, 15m or 1h');
@@ -34,60 +23,11 @@ const BAR_MS = BAR_MIN * 60 * 1000;
 const H1 = 60 / BAR_MIN; // bars in one hour
 const H4 = 240 / BAR_MIN;
 const CONTROLS_PER_SIGNAL = 5;
-const STABLES = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'FDUSD', 'PYUSD', 'USDE', 'EURC', 'USDS', 'USD1', 'RLUSD', 'USDD', 'GUSD']);
-const ALIASES = { WBTC: 'BTC', WETH: 'ETH', STETH: 'ETH', WSOL: 'SOL' };
+const MIN_USD = 1_000_000;
 
 /** The desk's rules with the same 60-minute holding limit, in bars of the chosen size. */
 const RULES = { ...DEFAULTS, maxBars: H1, leverage: 10 };
 const MARGIN = 100; // $ per trade: 10% of a $1,000 paper account, fixed so trades are comparable
-
-async function hl(body) {
-  for (let attempt = 0; attempt < 4; attempt++) {
-    const res = await fetch(HL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    if (res.ok) return res.json();
-    await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
-  }
-  throw new Error(`Hyperliquid request failed: ${JSON.stringify(body)}`);
-}
-
-async function getArchive() {
-  const local = arg('archive', null);
-  if (local) return local;
-  const path = join(tmpdir(), 'whale-alerts-archive.json.gz');
-  const res = await fetch(ARCHIVE_URL);
-  if (!res.ok) throw new Error(`archive download failed: HTTP ${res.status}`);
-  await pipeline(res.body, createWriteStream(path));
-  return path;
-}
-
-/** Streams the archive and returns exchange-bound transfers in the window. */
-async function readSignals(path, coins, sinceSec) {
-  const out = [];
-  let lastAlert = 0;
-  const stream = createReadStream(path).pipe(createGunzip()).pipe(StreamArray.withParser());
-  for await (const { value: a } of stream) {
-    lastAlert = Math.max(lastAlert, a.timestamp || 0);
-    if (a.transaction_type !== 'transfer' || (a.timestamp || 0) < sinceSec) continue;
-    const subs = (a.transaction && a.transaction.sub_transactions) || [];
-    const outs = subs.flatMap((s) => s.outputs || []);
-    const ins = subs.flatMap((s) => s.inputs || []);
-    const toEx = outs.find((o) => o.owner_type === 'exchange');
-    if (!toEx || ins.some((i) => i.owner_type === 'exchange')) continue;
-    const amt = (a.amounts || [])[0] || {};
-    const raw = String(amt.symbol || '').toUpperCase();
-    const coin = ALIASES[raw] || raw;
-    if (STABLES.has(coin) || !coins.has(coin) || (amt.value_usd || 0) < MIN_USD) continue;
-    out.push({
-      ts: a.timestamp,
-      coin,
-      usd: amt.value_usd,
-      from: a.from || 'unknown wallet',
-      to: toEx.owner || a.to || 'exchange',
-      hash: (a.transaction && a.transaction.hash) || `${a.timestamp}-${coin}`,
-    });
-  }
-  return { signals: out, lastAlert };
-}
 
 /** Runs the desk's exit rules on real candles starting at bar index i. */
 function simulate(candles, i) {
