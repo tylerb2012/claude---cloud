@@ -209,3 +209,22 @@ The desk's **Strategy lab** panel replays a technique you configure on every rea
 - Limits: hourly candles make stop/take-profit order within a bar approximate (the adverse side is checked first), funding isn't included, and entries assume a fill at the next hourly open after the alert.
 
 In a 48-setting sweep (Nov 2026), none passed. The best-looking settings on the older data, mostly longs held 1–24 hours, lost money on the held-back days.
+
+## Underdog Bot (Polymarket BTC 5-minute paper trader)
+
+A paper copy of a bot shared on X: on Polymarket's "Bitcoin Up or Down" 5-minute markets it buys whichever side is cheaper (the one the market thinks is less likely), only when that side costs 20–35¢, and holds to settlement ($1 a share or $0). One entry per market. It reads Polymarket's public APIs (`gamma-api.polymarket.com`, `clob.polymarket.com`, no key) and **places no orders**.
+
+| Command | What it does |
+|---|---|
+| `npm run poly` | Live paper trading in the terminal: watches every 5-minute market, buys from the real order book, settles when Polymarket posts the result. Keeps the account in `poly/data/ledger.json` between runs. Options: `--stake 500 --min 0.2 --max 0.35 --balance 10000 --reset` |
+| `npm run poly:backtest` | Replays the rule on the last N hours of settled markets (`--hours 168`) and prints hit rate by entry price, next to a control that buys the underdog in every market at any price. |
+| `npm run build:poly` | Builds `public/poly.html`, the same bot as a phone page (served at `/poly.html`). It trades only while the page is open and saves the account in that browser. |
+
+Behind this sandbox's proxy, Node's fetch needs `NODE_USE_ENV_PROXY=1`; on a normal computer it doesn't.
+
+- `poly/engine.js`: the rule, order-book fills, fees, the paper ledger and the stats (tests: `tests/poly.test.ts`). `poly/api.js`: Polymarket reads. Settings and their defaults are at the top of `engine.js`.
+- **Break-even:** you need to win as often as the price you pay per share, fees included (about 27% at the band's average entry).
+- **Fees (assumed):** these markets charge a taker fee. The default is `shares × p × 0.25 × (p(1−p))²`, about 1–1.5% of the stake in this band. The docs couldn't be checked from here, so confirm it on docs.polymarket.com and change `feeRate`/`feeExponent` if needed.
+- **Backtest limits:** it uses the last traded price about once a minute plus 1¢ to stand in for the ask, takes Down as 1 − Up, and ignores book depth. The live runner and the page fill from the real order book.
+
+**Results so far (Nov 2026):** the rule as described loses money. Over the last 7 days (2,016 markets, 1,245 trades, $500 each) it won 25.9% of the time against 27.2% needed to break even, for **−9.4% per dollar staked** (−$58.6K; max drawdown $77K; 19 losses in a row at worst). The 20–30¢ entries lost; only 30–35¢ entries were slightly positive. The control (buy the underdog in every market) shows the market's prices are about right or slightly too high for the underdog at every price level. Over 48 hours it came out at −1.2%, which shows how noisy a few hundred trades are. The bot in the screenshot made $103K on $13.1M of volume (0.8%), and its profile lists only winning trades; its edge, if real, probably comes from things this rule doesn't copy, such as when it buys, using resting limit orders (which pay no taker fee) or reading the live BTC price faster than the market.

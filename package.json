@@ -12,7 +12,10 @@
     "build:paper": "vite build -c vite.paper.config.ts && node scripts/build-paper.mjs",
     "build:desk": "node scripts/build-desk.mjs",
     "forward": "node forward/run.mjs",
-    "lab-data": "node forward/build-lab-data.mjs"
+    "lab-data": "node forward/build-lab-data.mjs",
+    "poly": "node poly/run.mjs",
+    "poly:backtest": "node poly/backtest.mjs",
+    "build:poly": "node scripts/build-poly.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

@@ -1,0 +1,338 @@
+<title>Underdog Bot (Paper)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* One phone-width column of panels in the same dark terminal look as the Venue Desk. */
+:root {
+  --bg: #06070b; --panel: #0d1017; --panel-2: #131824; --line: #1e2433;
+  --text: #e9edf5; --muted: #7c8597; --cyan: #2de2e6; --violet: #8b5cf6; --lime: #c6f135;
+  --up: #2fd57e; --down: #ff4d6d; --amber: #ffb020; --btc: #f7931a;
+  --display: 'Space Grotesk', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.4 var(--display); -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(60% 40% at 15% 0%, rgba(247,147,26,.12), transparent 70%),
+    radial-gradient(50% 35% at 100% 10%, rgba(139,92,246,.12), transparent 70%);
+  background-attachment: fixed;
+}
+button, input { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.up { color: var(--up); } .down { color: var(--down); }
+.wrap { max-width: 560px; margin: 0 auto; padding: 10px max(16px, env(safe-area-inset-left, 0px)) 40px; display: grid; gap: 12px; }
+@media (min-width: 1040px) { .wrap { max-width: 1120px; grid-template-columns: 1fr 1fr; align-items: start; } .span2 { grid-column: 1 / -1; } }
+.top { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.mark { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--btc); color: #06070b; font-weight: 800; font-size: 18px; }
+.top h1 { font-size: 17px; margin: 0; }
+.top .sub { font-size: 12px; }
+.badge { margin-left: auto; font: 600 11px var(--mono); padding: 4px 8px; border-radius: 99px; border: 1px solid var(--amber); color: var(--amber); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; min-width: 0; }
+.panel h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+.panel h2 .right { margin-left: auto; text-transform: none; letter-spacing: 0; }
+.mkt-title { font-weight: 700; font-size: 15px; }
+.bar { height: 6px; border-radius: 99px; background: var(--panel-2); overflow: hidden; margin: 10px 0 4px; position: relative; }
+.bar > i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--violet), var(--cyan)); }
+.bar > b { position: absolute; top: 0; bottom: 0; background: rgba(198,241,53,.18); }
+.sides { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.side { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--panel-2); }
+.side.dog { border-color: var(--lime); box-shadow: 0 0 0 1px var(--lime) inset; }
+.side .name { font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.side .tag { font: 600 10px var(--mono); color: #06070b; background: var(--lime); border-radius: 6px; padding: 1px 5px; }
+.side .px { font: 800 26px var(--mono); margin-top: 4px; }
+.side .small { font: 12px var(--mono); color: var(--muted); }
+.status { margin-top: 12px; font: 12px var(--mono); padding: 8px 10px; border-radius: 10px; background: var(--panel-2); }
+.status.buy { color: var(--lime); }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.kpi .v { font: 700 18px var(--mono); }
+.kpi .k { font-size: 11px; color: var(--muted); }
+.hit { margin-top: 12px; }
+.hit .track { position: relative; height: 10px; border-radius: 99px; background: var(--panel-2); }
+.hit .fill { position: absolute; inset: 0 auto 0 0; border-radius: 99px; }
+.hit .be { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--text); }
+.hit .lbl { display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--muted); margin-top: 6px; }
+svg.curve { width: 100%; height: 90px; display: block; margin-top: 12px; }
+.rows { display: grid; gap: 6px; max-height: 420px; overflow-y: auto; }
+.row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); font-size: 13px; }
+.row .dot { width: 8px; height: 8px; border-radius: 99px; background: var(--amber); }
+.row .dot.w { background: var(--up); } .row .dot.l { background: var(--down); }
+.row .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .d { font: 11px var(--mono); color: var(--muted); }
+.row .p { font: 600 13px var(--mono); text-align: right; }
+.empty { color: var(--muted); font-size: 13px; padding: 6px 0; }
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form label { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+.form input { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-family: var(--mono); width: 100%; }
+.btns { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 9px 14px; cursor: pointer; font-weight: 700; }
+.btn.go { background: var(--lime); color: #06070b; border-color: var(--lime); }
+.btn.warn { border-color: var(--down); color: var(--down); }
+.note { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.note b { color: var(--text); }
+</style>
+
+<div class="wrap">
+  <header class="top span2">
+    <div class="mark">₿</div>
+    <div>
+      <h1>Underdog Bot</h1>
+      <div class="sub muted">Bitcoin Up or Down · 5 min · Polymarket</div>
+    </div>
+    <span class="badge">PAPER</span>
+  </header>
+
+  <section class="panel">
+    <h2>Live market <span class="right mono" id="clock"></span></h2>
+    <div class="mkt-title" id="mTitle">Loading…</div>
+    <div class="bar" title="Shaded part: when the bot may enter"><b id="mWin"></b><i id="mBar"></i></div>
+    <div class="note mono" id="mLeft"></div>
+    <div class="sides">
+      <div class="side" id="sUp"><div class="name up">▲ Up</div><div class="px" id="pUp">–</div><div class="small" id="bUp"></div></div>
+      <div class="side" id="sDown"><div class="name down">▼ Down</div><div class="px" id="pDown">–</div><div class="small" id="bDown"></div></div>
+    </div>
+    <div class="status" id="mStatus">Starting…</div>
+  </section>
+
+  <section class="panel">
+    <h2>Paper account <span class="right mono muted" id="aRun"></span></h2>
+    <div class="kpis">
+      <div class="kpi"><div class="v" id="kEq">–</div><div class="k">Account</div></div>
+      <div class="kpi"><div class="v" id="kPnl">–</div><div class="k">Profit / loss</div></div>
+      <div class="kpi"><div class="v" id="kN">–</div><div class="k">Settled trades</div></div>
+      <div class="kpi"><div class="v" id="kRoi">–</div><div class="k">Per $ staked</div></div>
+      <div class="kpi"><div class="v" id="kDD">–</div><div class="k">Max drawdown</div></div>
+      <div class="kpi"><div class="v" id="kStreak">–</div><div class="k">Worst losing run</div></div>
+    </div>
+    <div class="hit">
+      <div class="track"><div class="fill" id="hFill"></div><div class="be" id="hBe"></div></div>
+      <div class="lbl"><span id="hTxt">Hit rate</span><span id="hBeTxt">break-even</span></div>
+    </div>
+    <svg class="curve" id="curve" viewBox="0 0 300 90" preserveAspectRatio="none" aria-label="Account balance after each trade"></svg>
+  </section>
+
+  <section class="panel">
+    <h2>Trades <span class="right mono muted" id="tCount"></span></h2>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Settings</h2>
+    <div class="form">
+      <label>Lowest price to buy (¢)<input id="fMin" type="number" min="1" max="99" step="1"></label>
+      <label>Highest price to buy (¢)<input id="fMax" type="number" min="1" max="99" step="1"></label>
+      <label>Dollars per trade<input id="fStake" type="number" min="1" step="50"></label>
+      <label>Starting balance ($)<input id="fBal" type="number" min="1" step="1000"></label>
+      <label>No entries in the first (s)<input id="fAfter" type="number" min="0" max="290" step="5"></label>
+      <label>No entries in the last (s)<input id="fBefore" type="number" min="0" max="290" step="5"></label>
+      <label>Fee rate (0 = no fees)<input id="fFee" type="number" min="0" step="0.05"></label>
+    </div>
+    <div class="btns">
+      <button class="btn go" id="bRun">Pause</button>
+      <button class="btn" id="bSave">Save settings</button>
+      <button class="btn warn" id="bReset">Reset account</button>
+    </div>
+    <p class="note">
+      Each 5 minutes the bot looks at the Up and Down order books. When the cheaper side's ask is inside your price band,
+      it paper-buys that side once and holds it to the end: <b>$1 a share if it wins, $0 if not</b>.
+      Breakeven hit rate = what you pay per share, fees included.
+    </p>
+    <p class="note">
+      <b>Paper only.</b> It reads Polymarket's public prices and places no orders. It only trades while this page is open
+      (phones pause background tabs). For around-the-clock paper trading, run <span class="mono">npm run poly</span> on a computer.
+      Your account is saved in this browser.
+    </p>
+  </section>
+</div>
+
+<script>
+/*ENGINE*/
+/*API*/
+(() => {
+  const KEY = 'poly-underdog-v1';
+  const $ = (id) => document.getElementById(id);
+  const usd = (n, d = 2) => `${n < 0 ? '-' : ''}$${Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d })}`;
+  const signed = (n) => `${n >= 0 ? '+' : ''}${usd(n)}`;
+  const pct = (x) => `${(x * 100).toFixed(1)}%`;
+  const hhmm = (s) => new Date(s * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+  }
+  const saved = load();
+  let cfg = { ...DEFAULTS, ...(saved.cfg || {}) };
+  let ledger = new Ledger(cfg, saved.ledger || null);
+  let running = saved.running !== false;
+  const persist = () => {
+    try { localStorage.setItem(KEY, JSON.stringify({ cfg, ledger: ledger.toJSON(), running })); } catch {}
+  };
+
+  let market = null, books = null, status = { text: 'Starting…', buy: false }, busy = false, lastErr = '';
+
+  function setStatus(text, buy = false) { status = { text, buy }; }
+
+  async function tick() {
+    if (busy) return;
+    busy = true;
+    try {
+      const now = Date.now() / 1000;
+      const start = slotStart(now);
+      for (const pos of [...ledger.open]) {
+        if (now < pos.end + 15) continue;
+        const m = await getMarket(pos.start);
+        if (m?.winner) { ledger.settle(pos.slug, m.winner); persist(); }
+      }
+      if (!market || market.start !== start) {
+        market = await getMarket(start);
+        books = null;
+        if (!market) { setStatus('Waiting for this window\'s market to be listed…'); return; }
+      }
+      books = await getBooks(market);
+      lastErr = '';
+      const pos = ledger.open.find((p) => p.slug === market.slug) || ledger.closed.find((p) => p.slug === market.slug);
+      if (pos) { setStatus(`Holding ${pos.side}: ${pos.shares.toFixed(1)} shares at ${cents(pos.avg)}. Pays ${usd(pos.shares)} if ${pos.side} wins.`, true); return; }
+      if (!running) { setStatus('Paused. Press Start to trade.'); return; }
+      const d = decide({ start, now: Date.now() / 1000, books }, cfg, ledger.cash);
+      if (d.action === 'buy') {
+        const p = ledger.buy(market, d, Math.floor(now));
+        persist();
+        setStatus(`Bought ${p.side}: ${p.shares.toFixed(1)} shares at ${cents(p.avg)} (${usd(p.cost + p.fee)} with fee).`, true);
+      } else if (d.reason === 'too early') setStatus(`Watching. Entries open ${cfg.enterAfterSec}s into the window.`);
+      else if (d.reason === 'too late') setStatus('No entry this window: the underdog never came into the price band.');
+      else setStatus(`Waiting: ${d.reason}.`);
+    } catch (e) {
+      lastErr = e.message || String(e);
+      setStatus(`Can't reach Polymarket (${lastErr}). Retrying…`);
+    } finally {
+      busy = false;
+      render();
+    }
+  }
+
+  function renderMarket() {
+    const now = Date.now() / 1000;
+    const start = slotStart(now);
+    const el = now - start;
+    $('clock').textContent = new Date().toLocaleTimeString();
+    $('mBar').style.width = `${(el / WINDOW_SEC) * 100}%`;
+    $('mWin').style.left = `${(cfg.enterAfterSec / WINDOW_SEC) * 100}%`;
+    $('mWin').style.right = `${(cfg.enterBeforeSec / WINDOW_SEC) * 100}%`;
+    const left = Math.max(0, Math.ceil(WINDOW_SEC - el));
+    $('mLeft').textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')} left · settles ${hhmm(start + WINDOW_SEC)}`;
+    $('mTitle').textContent = market?.title || 'Loading…';
+    for (const side of ['Up', 'Down']) {
+      const b = books?.[side];
+      const ask = b?.asks[0]?.p, bid = b?.bids[0]?.p;
+      $(`p${side}`).textContent = ask != null ? cents(ask) : '–';
+      $(`b${side}`).textContent = b ? `bid ${bid != null ? cents(bid) : '–'} · ask ${ask != null ? cents(ask) : '–'}` : '';
+    }
+    const up = books?.Up.asks[0]?.p, dn = books?.Down.asks[0]?.p;
+    const dog = up != null && dn != null ? (up <= dn ? 'Up' : 'Down') : null;
+    for (const side of ['Up', 'Down']) {
+      const box = $(`s${side}`);
+      const isDog = side === dog;
+      box.classList.toggle('dog', isDog);
+      const name = box.querySelector('.name');
+      const tag = name.querySelector('.tag');
+      if (isDog && !tag) name.insertAdjacentHTML('beforeend', '<span class="tag">UNDERDOG</span>');
+      if (!isDog && tag) tag.remove();
+    }
+    $('mStatus').textContent = status.text;
+    $('mStatus').classList.toggle('buy', status.buy);
+  }
+
+  function render() {
+    renderMarket();
+    const s = ledger.stats();
+    $('kEq').textContent = usd(s.equity, 0);
+    $('kPnl').textContent = signed(s.pnl);
+    $('kPnl').className = `v ${s.pnl > 0 ? 'up' : s.pnl < 0 ? 'down' : ''}`;
+    $('kN').textContent = `${s.wins}/${s.trades}`;
+    $('kRoi').textContent = s.trades ? `${s.roi >= 0 ? '+' : ''}${pct(s.roi)}` : '–';
+    $('kDD').textContent = usd(s.maxDrawdown, 0);
+    $('kStreak').textContent = s.trades ? `${s.worstLosingStreak} in a row` : '–';
+    const good = s.hitRate >= s.breakeven;
+    $('hFill').style.width = `${Math.min(100, s.hitRate * 100)}%`;
+    $('hFill').style.background = s.trades ? (good ? 'var(--up)' : 'var(--down)') : 'transparent';
+    $('hBe').style.left = `${Math.min(100, s.breakeven * 100)}%`;
+    $('hBe').style.display = s.trades ? '' : 'none';
+    $('hTxt').textContent = s.trades ? `Hit rate ${pct(s.hitRate)}` : 'Hit rate: no settled trades yet';
+    $('hBeTxt').textContent = s.trades ? `needs ${pct(s.breakeven)} to break even` : '';
+    $('aRun').textContent = running ? '● trading' : '❚❚ paused';
+    $('aRun').style.color = running ? 'var(--up)' : 'var(--amber)';
+    $('bRun').textContent = running ? 'Pause' : 'Start';
+
+    // balance after each settled trade
+    const c = s.curve, svg = $('curve');
+    svg.style.display = c.length < 2 ? 'none' : '';
+    if (c.length < 2) svg.innerHTML = '';
+    else {
+      const lo = Math.min(...c), hi = Math.max(...c), span = hi - lo || 1;
+      const pts = c.map((v, i) => `${(i / (c.length - 1)) * 300},${86 - ((v - lo) / span) * 82}`).join(' ');
+      const by = 86 - ((ledger.startBalance - lo) / span) * 82;
+      const col = c[c.length - 1] >= ledger.startBalance ? 'var(--up)' : 'var(--down)';
+      svg.innerHTML = `<line x1="0" x2="300" y1="${by}" y2="${by}" stroke="var(--line)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>` +
+        `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+    }
+
+    const rows = [...ledger.open.map((p) => ({ ...p, openPos: true })), ...ledger.closed.slice().reverse()].slice(0, 100);
+    $('tCount').textContent = `${ledger.open.length} open · ${ledger.closed.length} settled`;
+    $('rows').innerHTML = rows.length ? rows.map((t) => `
+      <div class="row">
+        <span class="dot ${t.openPos ? '' : t.won ? 'w' : 'l'}"></span>
+        <div class="t"><div>${t.side === 'Up' ? '▲' : '▼'} ${t.side} at ${cents(t.avg)} · ${hhmm(t.start)}–${hhmm(t.end)}</div>
+          <div class="d">${usd(t.cost + t.fee)} for ${t.shares.toFixed(1)} sh${t.openPos ? ' · waiting for result' : ` · ${t.winner} won`}</div></div>
+        <div class="p ${t.openPos ? 'muted' : t.won ? 'up' : 'down'}">${t.openPos ? 'open' : signed(t.pnl)}</div>
+      </div>`).join('') : '<div class="empty">No trades yet. The bot buys when the cheaper side\'s ask is inside your price band.</div>';
+  }
+
+  function fillForm() {
+    $('fMin').value = Math.round(cfg.minPrice * 100);
+    $('fMax').value = Math.round(cfg.maxPrice * 100);
+    $('fStake').value = cfg.stake;
+    $('fBal').value = cfg.startBalance;
+    $('fAfter').value = cfg.enterAfterSec;
+    $('fBefore').value = cfg.enterBeforeSec;
+    $('fFee').value = cfg.feeRate;
+  }
+  function readForm() {
+    const n = (id, d) => { const v = Number($(id).value); return Number.isFinite(v) ? v : d; };
+    const min = n('fMin', 20) / 100, max = n('fMax', 35) / 100;
+    return {
+      ...cfg,
+      minPrice: Math.min(min, max), maxPrice: Math.max(min, max),
+      stake: Math.max(1, n('fStake', cfg.stake)),
+      startBalance: Math.max(1, n('fBal', cfg.startBalance)),
+      enterAfterSec: n('fAfter', cfg.enterAfterSec), enterBeforeSec: n('fBefore', cfg.enterBeforeSec),
+      feeRate: Math.max(0, n('fFee', cfg.feeRate)),
+    };
+  }
+
+  $('bRun').onclick = () => { running = !running; persist(); tick(); };
+  $('bSave').onclick = () => {
+    const bal = cfg.startBalance;
+    cfg = readForm();
+    ledger.cfg = { ...cfg };
+    if (cfg.startBalance !== bal) $('bSave').textContent = 'Saved (balance applies on reset)';
+    else $('bSave').textContent = 'Saved';
+    setTimeout(() => ($('bSave').textContent = 'Save settings'), 1800);
+    persist(); fillForm(); render();
+  };
+  $('bReset').onclick = () => {
+    if (!confirm('Clear all paper trades and start over?')) return;
+    cfg = readForm();
+    ledger = new Ledger(cfg);
+    persist(); fillForm(); render();
+  };
+
+  fillForm();
+  render();
+  tick();
+  setInterval(tick, 3000);
+  setInterval(renderMarket, 1000);
+})();
+</script>

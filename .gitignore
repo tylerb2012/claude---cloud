@@ -6,3 +6,4 @@ dist
 *.log
 dist-paper
 dist-desk
+poly/data
